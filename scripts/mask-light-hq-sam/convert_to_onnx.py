@@ -1,5 +1,8 @@
-# Export SAM-HQ prompt encoder + mask decoder to ONNX.
-# Based on sam-hq/scripts/export_onnx_model.py with fixes for Light HQ-SAM (vit_tiny).
+# Export SAM-HQ image encoder and decoder (prompt encoder + mask decoder) to
+# separate ONNX files:  encoder.onnx  and  decoder.onnx.
+#
+# Based on sam-hq/scripts/export_onnx_model.py with fixes for Light HQ-SAM
+# (vit_tiny).
 #
 # The original script fails for vit_tiny because:
 # 1. encoder_embed_dim_dict has no "vit_tiny" entry -> KeyError
@@ -7,9 +10,11 @@
 #    but TinyViT only produces 1.
 
 import argparse
+import os
 import warnings
 
 import torch
+import torch.nn as nn
 
 from segment_anything import sam_model_registry
 from segment_anything.utils.onnx import SamOnnxModel
@@ -36,7 +41,7 @@ MODEL_CONFIG = {
 }
 
 parser = argparse.ArgumentParser(
-    description="Export SAM-HQ prompt encoder and mask decoder to ONNX."
+    description="Export SAM-HQ encoder and decoder to separate ONNX files."
 )
 parser.add_argument(
     "--checkpoint",
@@ -45,10 +50,10 @@ parser.add_argument(
     help="Path to the SAM-HQ model checkpoint (.pth).",
 )
 parser.add_argument(
-    "--output",
+    "--output-dir",
     type=str,
     required=True,
-    help="Output path for the ONNX model.",
+    help="Output directory for encoder.onnx and decoder.onnx.",
 )
 parser.add_argument(
     "--model-type",
@@ -81,7 +86,7 @@ parser.add_argument(
     "--quantize-out",
     type=str,
     default=None,
-    help="If set, quantize the model (uint8) and save to this path.",
+    help="If set, quantize the decoder model (uint8) and save to this path.",
 )
 parser.add_argument(
     "--gelu-approximate",
@@ -100,9 +105,60 @@ parser.add_argument(
 )
 
 
-def run_export(
+class SamEncoderOnnxModel(nn.Module):
+    """Wraps the SAM-HQ image encoder for ONNX export.
+
+    Outputs image_embeddings and interm_embeddings stacked into a single
+    tensor so they can be fed directly to the decoder ONNX model.
+    """
+
+    def __init__(self, sam_model):
+        super().__init__()
+        self.image_encoder = sam_model.image_encoder
+
+    @torch.no_grad()
+    def forward(self, image):
+        image_embeddings, interm_embeddings = self.image_encoder(image)
+        # Stack list of (B, H, W, C) tensors -> (num_interm, B, H, W, C)
+        interm_embeddings = torch.stack(interm_embeddings, dim=0)
+        return image_embeddings, interm_embeddings
+
+
+def run_encoder_export(sam, model_type: str, output: str, opset: int):
+    """Export the image encoder to ONNX."""
+    encoder_model = SamEncoderOnnxModel(sam)
+    encoder_model.eval()
+
+    dummy_image = torch.randn(1, 3, 1024, 1024, dtype=torch.float)
+
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=torch.jit.TracerWarning)
+        warnings.filterwarnings("ignore", category=UserWarning)
+        print(f"Exporting encoder to {output}...")
+        torch.onnx.export(
+            encoder_model,
+            dummy_image,
+            output,
+            export_params=True,
+            verbose=False,
+            opset_version=opset,
+            do_constant_folding=True,
+            input_names=["image"],
+            output_names=["image_embeddings", "interm_embeddings"],
+            dynamo=False,
+        )
+
+    if onnxruntime_exists:
+        ort_inputs = {"image": dummy_image.cpu().numpy()}
+        providers = ["CPUExecutionProvider"]
+        ort_session = onnxruntime.InferenceSession(output, providers=providers)
+        _ = ort_session.run(None, ort_inputs)
+        print("Encoder has successfully been run with ONNXRuntime.")
+
+
+def run_decoder_export(
+    sam,
     model_type: str,
-    checkpoint: str,
     output: str,
     opset: int,
     hq_token_only: bool = False,
@@ -111,9 +167,7 @@ def run_export(
     use_stability_score: bool = False,
     return_extra_metrics: bool = False,
 ):
-    print(f"Loading model ({model_type})...")
-    sam = sam_model_registry[model_type](checkpoint=checkpoint)
-
+    """Export the prompt encoder + mask decoder to ONNX."""
     onnx_model = SamOnnxModel(
         model=sam,
         hq_token_only=hq_token_only,
@@ -160,7 +214,7 @@ def run_export(
         warnings.filterwarnings("ignore", category=torch.jit.TracerWarning)
         warnings.filterwarnings("ignore", category=UserWarning)
         with open(output, "wb") as f:
-            print(f"Exporting ONNX model to {output}...")
+            print(f"Exporting decoder to {output}...")
             torch.onnx.export(
                 onnx_model,
                 tuple(dummy_inputs.values()),
@@ -180,15 +234,30 @@ def run_export(
         providers = ["CPUExecutionProvider"]
         ort_session = onnxruntime.InferenceSession(output, providers=providers)
         _ = ort_session.run(None, ort_inputs)
-        print("Model has successfully been run with ONNXRuntime.")
+        print("Decoder has successfully been run with ONNXRuntime.")
 
 
 if __name__ == "__main__":
     args = parser.parse_args()
-    run_export(
+
+    os.makedirs(args.output_dir, exist_ok=True)
+    encoder_path = os.path.join(args.output_dir, "encoder.onnx")
+    decoder_path = os.path.join(args.output_dir, "decoder.onnx")
+
+    print(f"Loading model ({args.model_type})...")
+    sam = sam_model_registry[args.model_type](checkpoint=args.checkpoint)
+
+    run_encoder_export(
+        sam,
         model_type=args.model_type,
-        checkpoint=args.checkpoint,
-        output=args.output,
+        output=encoder_path,
+        opset=args.opset,
+    )
+
+    run_decoder_export(
+        sam,
+        model_type=args.model_type,
+        output=decoder_path,
         opset=args.opset,
         hq_token_only=args.hq_token_only,
         multimask_output=args.multimask_output,
@@ -202,9 +271,9 @@ if __name__ == "__main__":
         from onnxruntime.quantization import QuantType  # type: ignore
         from onnxruntime.quantization.quantize import quantize_dynamic  # type: ignore
 
-        print(f"Quantizing model and writing to {args.quantize_out}...")
+        print(f"Quantizing decoder and writing to {args.quantize_out}...")
         quantize_dynamic(
-            model_input=args.output,
+            model_input=decoder_path,
             model_output=args.quantize_out,
             optimize_model=True,
             per_channel=False,
