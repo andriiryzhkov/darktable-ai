@@ -1,0 +1,9 @@
+{
+    "id": "nafnet-sidd-width32",
+    "name": "nafnet small",
+    "description": "NAFNet denoiser trained on SIDD dataset",
+    "task": "denoise",
+    "backend": "onnx",
+    "version": "1.0",
+    "tiling": true
+}
