@@ -5,8 +5,8 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-MODEL_DIR="$SCRIPT_DIR/../models/onnx"
-IMAGE_DIR="$SCRIPT_DIR/../examples"
+MODEL_DIR="$SCRIPT_DIR/../../models/denoise-nafnet"
+IMAGE_DIR="$SCRIPT_DIR/NAFNet/demo"
 VENV_DIR="$SCRIPT_DIR/.venv"
 
 if [ ! -d "$VENV_DIR" ]; then
@@ -17,4 +17,4 @@ fi
 source "$VENV_DIR/bin/activate"
 
 echo "NAFNet-SIDD-width32"
-python3 "$SCRIPT_DIR/demo.py" --model "$MODEL_DIR/nafnet-sidd-width32.onnx" --input "$IMAGE_DIR/denoise_img.png" --output "$IMAGE_DIR/denoise_img_out_w32.png"
+python3 "$SCRIPT_DIR/demo.py" --model "$MODEL_DIR/model.onnx" --input "$IMAGE_DIR/denoise_img.png" --output "$IMAGE_DIR/denoise_img_out_w32.png"

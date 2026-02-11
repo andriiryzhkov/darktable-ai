@@ -25,8 +25,10 @@ def run_inference(model_path, input_path, output_path):
         print(f"Error loading model: {e}")
         sys.exit(1)
         
-    input_name = session.get_inputs()[0].name
-    
+    model_input = session.get_inputs()[0]
+    input_name = model_input.name
+    input_is_fp16 = model_input.type == 'tensor(float16)'
+
     # 1. Read image
     print(f"Reading image: {input_path}")
     img = cv2.imread(input_path) # BGR
@@ -45,7 +47,11 @@ def run_inference(model_path, input_path, output_path):
     
     # Add batch dimension: BCHW
     img = img[None, :, :, :]
-    
+
+    # Cast to FP16 if model expects it
+    if input_is_fp16:
+        img = img.astype(np.float16)
+
     # 3. Run Inference
     print("Running inference...")
     try:
@@ -55,7 +61,7 @@ def run_inference(model_path, input_path, output_path):
         sys.exit(1)
         
     # 4. Postprocessing
-    output = output[0] # Remove batch dimension: CHW
+    output = output[0].astype(np.float32) # Remove batch dimension: CHW
     
     # CHW to HWC
     output = output.transpose(1, 2, 0)
