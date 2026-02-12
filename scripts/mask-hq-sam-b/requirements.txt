@@ -1,0 +1,5 @@
+numpy<2.0
+torch>=2.1
+torchvision
+onnx>=1.10.0
+onnxruntime
