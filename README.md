@@ -4,10 +4,13 @@ ONNX models and conversion scripts for darktable image processing.
 
 ## Models
 
-| Model                | Task    | Description                                  |
-|----------------------|---------|----------------------------------------------|
-| `denoise-nafnet`     | denoise | NAFNet denoiser trained on SIDD dataset      |
-| `mask-light-hq-sam`  | mask    | Light HQ Segment Anything Model for masking  |
+| Model               | Task    | Description                             |
+|---------------------|---------|-----------------------------------------|
+| `denoise-nafnet`    | denoise | NAFNet denoiser trained on SIDD dataset |
+| `mask-samhq-light`  | mask    | SAM-HQ Light (ViT-Tiny) for masking    |
+| `mask-samhq-base`   | mask    | SAM-HQ (ViT-B) for masking             |
+| `mask-sam21-tiny`   | mask    | SAM 2.1 (Hiera Tiny) for masking       |
+| `mask-sam21-small`  | mask    | SAM 2.1 (Hiera Small) for masking      |
 
 ## Repository structure
 

@@ -8,7 +8,6 @@ source "$SCRIPT_DIR/../common.sh"
 activate_venv
 
 python3 "$SCRIPT_DIR/export_onnx_model.py" \
-    --model-type vit_b \
-    --checkpoint "$ROOT_DIR/checkpoints/mask-hq-sam-b/sam_hq_vit_b.pth" \
-    --output-dir "$ROOT_DIR/models/mask-hq-sam-b" \
-    --hq-token-only
+    --model-cfg "configs/sam2.1/sam2.1_hiera_s.yaml" \
+    --checkpoint "$ROOT_DIR/checkpoints/mask-sam21-small/sam2.1_hiera_small.pt" \
+    --output-dir "$ROOT_DIR/models/mask-sam21-small"

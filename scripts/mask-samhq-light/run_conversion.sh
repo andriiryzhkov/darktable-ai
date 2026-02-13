@@ -9,6 +9,6 @@ activate_venv
 
 python3 "$SCRIPT_DIR/convert_to_onnx.py" \
     --model-type vit_tiny \
-    --checkpoint "$ROOT_DIR/checkpoints/mask-light-hq-sam/sam_hq_vit_tiny.pth" \
-    --output-dir "$ROOT_DIR/models/mask-light-hq-sam" \
+    --checkpoint "$ROOT_DIR/checkpoints/mask-samhq-light/sam_hq_vit_tiny.pth" \
+    --output-dir "$ROOT_DIR/models/mask-samhq-light" \
     --hq-token-only

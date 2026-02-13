@@ -1,0 +1,9 @@
+{
+    "id": "mask-sam21-tiny",
+    "name": "mask sam2.1 hiera tiny",
+    "description": "Segment Anything 2.1 (Hiera Tiny) for masking",
+    "task": "mask",
+    "backend": "onnx",
+    "version": "1.0",
+    "tiling": false
+}

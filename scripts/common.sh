@@ -5,7 +5,7 @@
 # sourcing the model's model.conf.
 #
 # Expected variables from model.conf:
-#   MODEL_ID              - e.g. "mask-light-hq-sam"
+#   MODEL_ID              - e.g. "mask-samhq-light"
 #   REPO_URL              - git clone URL
 #   REPO_DIR              - local directory name for the cloned repo
 #   REPO_INSTALL_CMD      - command to install the repo (run from repo dir)

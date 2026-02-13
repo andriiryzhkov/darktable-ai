@@ -1,6 +1,6 @@
 {
-    "id": "mask-light-hq-sam",
-    "name": "mask light sam-hq",
+    "id": "mask-samhq-light",
+    "name": "mask sam-hq light",
     "description": "Light HQ Segment Anything Model for masking",
     "task": "mask",
     "backend": "onnx",
