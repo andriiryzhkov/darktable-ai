@@ -19,6 +19,8 @@ checkpoints/          PyTorch checkpoints (downloaded by setup scripts)
 models/               ONNX models + config.json per model
 scripts/
   common.sh           Shared shell functions for setup/clean/convert
+  run.sh              Run full pipeline (setup → convert → clean) for a model
+  run_all.sh          Run full pipeline for all models
   <model>/
     model.conf        Model-specific configuration (repo URL, checkpoint, etc.)
     requirements.txt  Python dependencies
@@ -30,22 +32,24 @@ scripts/
 
 ## Usage
 
-Setup environment and download checkpoint:
+Run the full pipeline (setup, convert, clean) for a single model:
 
 ```bash
-./scripts/<model>/setup_env.sh
+./scripts/run.sh <model_id>
 ```
 
-Convert to ONNX:
+Run the pipeline for all models:
 
 ```bash
-./scripts/<model>/run_conversion.sh
+./scripts/run_all.sh
 ```
 
-Clean up:
+Or run each step individually:
 
 ```bash
-./scripts/<model>/clean_env.sh
+./scripts/<model>/setup_env.sh        # Create venv, clone repo, download checkpoint
+./scripts/<model>/run_conversion.sh   # Convert to ONNX
+./scripts/<model>/clean_env.sh        # Remove venv and cloned repo
 ```
 
 ## Adding a new model
