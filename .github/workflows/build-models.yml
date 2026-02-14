@@ -20,7 +20,7 @@ jobs:
         run: |
           models=$(ls -d scripts/*/model.conf 2>/dev/null \
             | xargs -I{} dirname {} \
-            | xargs -I{} basename {} \
+            | while read d; do [ ! -f "$d/.skip" ] && basename "$d"; done \
             | jq -R -s -c 'split("\n") | map(select(length > 0))')
           echo "models=$models" >> "$GITHUB_OUTPUT"
 
