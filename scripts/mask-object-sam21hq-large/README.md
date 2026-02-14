@@ -49,3 +49,11 @@ precision than the standard SAM masks.
 - The HQ mask (index 3) typically has the best boundary quality.
 - Output masks are always 1024x1024 (resize to original image size at runtime).
 - `low_res_masks` (256x256) can be fed back as `mask_input` for iterative refinement.
+
+## Selection criteria compliance
+
+- **License:** Apache-2.0 -- permissive, GPL-3.0 compatible.
+- **Open weights:** Publicly available on HuggingFace, no registration required.
+- **Published research:** HQ-SAM peer-reviewed at NeurIPS 2023; SAM 2 published with technical report (arXiv 2024).
+- **Training data:** SA-V video dataset + SA-1B (1 billion masks, 11 million licensed images). Training data is publicly documented by Meta.
+- **Purpose:** Object segmentation for masking -- non-destructive photo editing task. Runs locally, no external services.

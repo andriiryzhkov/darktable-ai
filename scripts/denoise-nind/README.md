@@ -31,3 +31,11 @@ with skip connections and sigmoid output activation.
 - No ImageNet normalization — input is simply RGB in [0, 1] range.
 - Output is clamped to [0, 1] by the sigmoid activation.
 - Exported with FP16 precision.
+
+## Selection criteria compliance
+
+- **License:** GPL-3.0 -- same license as darktable.
+- **Open weights:** Publicly available on GitHub, no registration required.
+- **Published research:** Published at CVPR Workshops 2019.
+- **Training data:** Natural Image Noise Dataset (NIND) from Wikimedia Commons -- Creative Commons licensed photographs with real-world noise. Fully public and documented.
+- **Purpose:** Image denoising -- non-destructive photo editing task. Runs locally, no external services.

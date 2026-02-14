@@ -31,3 +31,11 @@ DINOv2-Small encoder + DPT (Dense Prediction Transformer) decoder.
 - Pre-converted ONNX from HuggingFace — no PyTorch conversion step.
 - Full precision (float32).
 - Input/output tensor names may vary — use `session.get_inputs()[0].name` at runtime.
+
+## Selection criteria compliance
+
+- **License:** Apache-2.0 -- permissive, GPL-3.0 compatible.
+- **Open weights:** Publicly available on HuggingFace, no registration required.
+- **Published research:** Published with technical report (arXiv 2024).
+- **Training data:** Synthetic datasets (Hypersim, Virtual KITTI, BlendedMVS, etc.) + pseudo-labeled real images. All training sources are publicly documented.
+- **Purpose:** Depth estimation for masking -- non-destructive photo editing task. Runs locally, no external services.

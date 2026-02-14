@@ -46,3 +46,11 @@ refinement for improved boundary quality.
 - Output mask resolution matches `orig_im_size`.
 - Point labels: 0 = background, 1 = foreground, 2 = top-left box corner, 3 = bottom-right box corner.
 - 1 intermediate embedding (TinyViT has 1 global attention stage vs 4 for standard ViT).
+
+## Selection criteria compliance
+
+- **License:** Apache-2.0 -- permissive, GPL-3.0 compatible.
+- **Open weights:** Publicly available on HuggingFace, no registration required.
+- **Published research:** Peer-reviewed at NeurIPS 2023.
+- **Training data:** SA-1B dataset (1 billion masks, 11 million licensed images). Training data is publicly documented by Meta with clear provenance.
+- **Purpose:** Object segmentation for masking -- non-destructive photo editing task. Runs locally, no external services.

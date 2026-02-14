@@ -30,3 +30,11 @@ channel widths [32, 64, 128, 256], 12 middle blocks.
 - Input and output are both RGB images in [0, 1] range.
 - Output should be clipped to [0, 1] before converting back to uint8.
 - Exported with FP16 precision.
+
+## Selection criteria compliance
+
+- **License:** MIT -- permissive, GPL-3.0 compatible.
+- **Open weights:** Publicly available on Google Drive, no registration required.
+- **Published research:** Peer-reviewed at ECCV 2022.
+- **Training data:** SIDD (Smartphone Image Denoising Dataset) -- academic dataset of real smartphone noisy/clean image pairs from 10 scenes captured with 5 smartphones. Publicly documented and available.
+- **Purpose:** Image denoising -- non-destructive photo editing task. Runs locally, no external services.

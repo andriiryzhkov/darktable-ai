@@ -57,6 +57,23 @@ Or run each step individually:
 ./scripts/<model>/clean_env.sh        # Remove venv and cloned repo
 ```
 
+## Model selection criteria
+
+Darktable is free software licensed under [GPL-3.0](https://www.gnu.org/licenses/gpl-3.0.html). All AI models included in this repository are selected with the following principles in mind.
+
+### Open-source and licensing
+
+- **GPL-3.0-compatible licenses only.** Every model must be released under a license compatible with GPL-3.0 (e.g. Apache-2.0, MIT, BSD, GPL-3.0). Proprietary or non-commercial-only models are not accepted.
+- **Open weights.** Model weights must be publicly available for download without registration walls or usage restrictions.
+- **Published research.** Models should have an accompanying peer-reviewed paper or public technical report describing the architecture and training methodology.
+
+### AI ethics
+
+- **Training data transparency.** We prefer models trained on publicly documented datasets with clear provenance. Models trained on undisclosed or scraped personal data without consent are not accepted.
+- **Privacy by design.** All inference runs locally on the user's machine. No data is sent to external services. No telemetry, no cloud dependencies.
+- **Purpose-limited scope.** Models are selected strictly for non-destructive photo editing tasks (denoising, masking, depth estimation). We do not include models designed for generating, manipulating, or synthesizing human likenesses.
+- **Reproducibility.** Conversion scripts, model configurations, and source references are fully documented so that any user can verify and rebuild the ONNX models from the original checkpoints.
+
 ## Adding a new model
 
 1. Create `scripts/<model>/model.conf` with repo URL, install command, and checkpoint URLs
