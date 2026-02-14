@@ -8,11 +8,11 @@ ONNX models and conversion scripts for darktable image processing.
 |---------------------|---------|-----------------------------------------|
 | `denoise-nafnet`    | denoise | NAFNet denoiser trained on SIDD dataset |
 | `denoise-nind`      | denoise | UNet denoiser trained on NIND dataset   |
-| `mask-samhq-light`  | mask    | HQ-SAM Light (ViT-Tiny) for masking    |
-| `mask-samhq-base`   | mask    | HQ-SAM (ViT-B) for masking             |
-| `mask-sam21-tiny`   | mask    | SAM 2.1 (Hiera Tiny) for masking       |
-| `mask-sam21-small`  | mask    | SAM 2.1 (Hiera Small) for masking      |
-| `mask-sam21hq-large`| mask    | HQ-SAM 2.1 (Hiera Large) for masking   |
+| `mask-object-samhq-light`  | mask    | HQ-SAM Light (ViT-Tiny) for masking    |
+| `mask-object-samhq-base`   | mask    | HQ-SAM (ViT-B) for masking             |
+| `mask-object-sam21-tiny`   | mask    | SAM 2.1 (Hiera Tiny) for masking       |
+| `mask-object-sam21-small`  | mask    | SAM 2.1 (Hiera Small) for masking      |
+| `mask-object-sam21hq-large`| mask    | HQ-SAM 2.1 (Hiera Large) for masking   |
 
 ## Repository structure
 

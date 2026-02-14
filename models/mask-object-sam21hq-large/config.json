@@ -1,5 +1,5 @@
 {
-    "id": "mask-sam21hq-large",
+    "id": "mask-object-sam21hq-large",
     "name": "mask sam2.1 hq hiera large",
     "description": "HQ-SAM 2.1 (Hiera Large) for masking",
     "task": "mask",

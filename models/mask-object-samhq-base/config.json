@@ -1,5 +1,5 @@
 {
-    "id": "mask-samhq-base",
+    "id": "mask-object-samhq-base",
     "name": "mask sam-hq base",
     "description": "HQ Segment Anything Model (ViT-B) for masking",
     "task": "mask",

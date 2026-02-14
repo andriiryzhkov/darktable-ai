@@ -1,5 +1,5 @@
 {
-    "id": "mask-samhq-light",
+    "id": "mask-object-samhq-light",
     "name": "mask sam-hq light",
     "description": "Light HQ Segment Anything Model for masking",
     "task": "mask",
