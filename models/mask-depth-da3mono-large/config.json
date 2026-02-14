@@ -1,0 +1,9 @@
+{
+    "id": "mask-depth-da3mono-large",
+    "name": "mask depth anything 3 mono large",
+    "description": "Depth Anything 3 Mono-Large for depth-based masking",
+    "task": "mask",
+    "backend": "onnx",
+    "version": "1.0",
+    "tiling": false
+}

@@ -230,3 +230,6 @@ macOS
 *.tar
 *.tar.bz2
 *.tar.xz
+
+# AI model checkpoints
+checkpoints/
