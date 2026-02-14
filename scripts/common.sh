@@ -118,6 +118,42 @@ activate_venv() {
     source "$VENV_DIR/bin/activate"
 }
 
+run_demo() {
+    # Run demo.py on all sample images.
+    # Usage: run_demo [extra args for demo.py...]
+    # Automatically provides --image and --output for each sample image.
+    # Model-specific args (e.g. --model, --encoder) are passed through.
+    #
+    # If the calling script defines a demo_args() function, it is called
+    # with the image basename (e.g. "example_01") and its output is appended
+    # as extra arguments. Use this for per-image inputs like point prompts.
+    activate_venv
+
+    local images_dir="$ROOT_DIR/images"
+    local output_dir="$SCRIPT_DIR/output"
+    mkdir -p "$output_dir"
+
+    for img in "$images_dir"/example_*.jpg "$images_dir"/example_*.png; do
+        [ -f "$img" ] || continue
+        local name
+        name="$(basename "${img%.*}")"
+        local output="$output_dir/${name}.png"
+
+        local extra=""
+        if declare -f demo_args > /dev/null; then
+            extra="$(demo_args "$name")"
+        fi
+
+        echo "  $name"
+        # shellcheck disable=SC2086
+        python3 "$SCRIPT_DIR/demo.py" \
+            "$@" \
+            $extra \
+            --image "$img" \
+            --output "$output"
+    done
+}
+
 clean_env() {
     echo "Cleaning up environment for $MODEL_ID..."
 

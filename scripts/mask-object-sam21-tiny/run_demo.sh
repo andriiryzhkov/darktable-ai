@@ -17,7 +17,7 @@ demo_args() {
     esac
 }
 
-echo "SAM 2.1 Small ONNX segmentation"
+echo "SAM 2.1 Tiny segmentation"
 run_demo \
     --encoder "$MODEL_DIR/encoder.onnx" \
     --decoder "$MODEL_DIR/decoder.onnx"

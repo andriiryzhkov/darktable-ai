@@ -85,12 +85,12 @@ def run_inference(model_path, input_path, output_path):
 def main():
     parser = argparse.ArgumentParser(description='Run NAFNet ONNX Demo')
     parser.add_argument('--model', type=str, required=True, help='Path to ONNX model')
-    parser.add_argument('--input', type=str, required=True, help='Path to input image')
+    parser.add_argument('--image', type=str, required=True, help='Path to input image')
     parser.add_argument('--output', type=str, required=True, help='Path to output image')
     
     args = parser.parse_args()
     
-    run_inference(args.model, args.input, args.output)
+    run_inference(args.model, args.image, args.output)
 
 if __name__ == '__main__':
     main()

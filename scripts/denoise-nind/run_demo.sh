@@ -8,5 +8,5 @@ source "$SCRIPT_DIR/../common.sh"
 
 MODEL_DIR="$ROOT_DIR/models/$MODEL_ID"
 
-echo "NAFNet-SIDD-width32"
+echo "NIND UNet denoising"
 run_demo --model "$MODEL_DIR/model.onnx"

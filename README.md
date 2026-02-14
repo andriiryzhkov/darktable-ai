@@ -20,19 +20,24 @@ ONNX models and conversion scripts for [darktable](https://www.darktable.org/) -
 ## Repository structure
 
 ```
-temp/                 Downloaded checkpoints (before conversion, gitignored)
+images/               Sample images for demos
 models/               ONNX models + config.json per model
+temp/                 Downloaded checkpoints (before conversion, gitignored)
 scripts/
-  common.sh           Shared shell functions for setup/clean/convert
-  run.sh              Run full pipeline (setup → convert → clean) for a model
+  common.sh           Shared shell functions (setup, convert, clean, demo)
+  run.sh              Run full pipeline (setup -> convert -> clean) for a model
   run_all.sh          Run full pipeline for all models
   <model>/
-    model.conf        Model-specific configuration (repo URL, checkpoint, etc.)
+    model.conf        Model configuration (repo URL, checkpoints, etc.)
     requirements.txt  Python dependencies
-    setup_env.sh      Create venv, clone repo, download checkpoint
+    setup_env.sh      Create venv, clone repo, download checkpoints
     run_conversion.sh Convert PyTorch checkpoint to ONNX
     clean_env.sh      Remove venv and cloned repo
     convert_*.py      Model-specific conversion script
+    demo.py           Demo inference script
+    run_demo.sh       Run demo on all sample images
+    README.md         Model documentation and ONNX tensor specs
+    .skip             If present, skip this model in run_all.sh and CI
 ```
 
 ## Usage
@@ -54,8 +59,26 @@ Or run each step individually:
 ```bash
 ./scripts/<model>/setup_env.sh        # Create venv, clone repo, download checkpoint
 ./scripts/<model>/run_conversion.sh   # Convert to ONNX
+./scripts/<model>/run_demo.sh.        # Run a demo
 ./scripts/<model>/clean_env.sh        # Remove venv and cloned repo
 ```
+
+## Demos
+
+Each model includes a demo script that runs inference on the sample images in `images/`.
+
+Run a demo for a single model (requires the venv and ONNX model to be present):
+
+```bash
+./scripts/<model>/run_demo.sh
+```
+
+Demo scripts use the shared `run_demo` function from `common.sh`, which iterates
+over all sample images automatically. Models that require per-image input (e.g.
+point prompts for object segmentation) define a `demo_args()` function in their
+`run_demo.sh`.
+
+Output images are saved to `scripts/<model>/output/`.
 
 ## Model selection criteria
 
