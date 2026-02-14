@@ -16,6 +16,7 @@ ONNX models and conversion scripts for [darktable](https://www.darktable.org/) -
 | [`mask-object-sam21hq-large`](scripts/mask-object-sam21hq-large/README.md)       | mask    | HQ-SAM 2.1 (Hiera Large) for masking          |
 | [`mask-depth-da2-small`](scripts/mask-depth-da2-small/README.md)                 | depth    | Depth Anything V2 Small for depth masking     |
 | [`mask-depth-da3mono-large`](scripts/mask-depth-da3mono-large/README.md)         | depth    | Depth Anything 3 Mono-Large for depth masking |
+| [`erase-lama-big`](scripts/erase-lama-big/README.md)                             | erase   | LaMa Big for object erasure (inpainting)      |
 
 ## Repository structure
 
