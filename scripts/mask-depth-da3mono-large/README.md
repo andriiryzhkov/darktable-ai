@@ -39,4 +39,4 @@ DINOv2-Large encoder + DualDPT decoder. The model predicts 2 channels
 - **Open weights:** Publicly available on HuggingFace, no registration required.
 - **Published research:** Published with technical report (arXiv 2025).
 - **Training data:** Synthetic datasets + large-scale pseudo-labeled real images with scale-and-shift-invariant training. All training sources are publicly documented.
-- **Purpose:** Depth estimation for masking -- non-destructive photo editing task. Runs locally, no external services.
+- **Purpose:** Depth estimation for masking - photo editing task. Runs locally, no external services.

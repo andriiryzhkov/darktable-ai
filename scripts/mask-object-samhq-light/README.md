@@ -53,4 +53,4 @@ refinement for improved boundary quality.
 - **Open weights:** Publicly available on HuggingFace, no registration required.
 - **Published research:** Peer-reviewed at NeurIPS 2023.
 - **Training data:** SA-1B dataset (1 billion masks, 11 million licensed images). Training data is publicly documented by Meta with clear provenance.
-- **Purpose:** Object segmentation for masking -- non-destructive photo editing task. Runs locally, no external services.
+- **Purpose:** Object segmentation for masking - photo editing task. Runs locally, no external services.

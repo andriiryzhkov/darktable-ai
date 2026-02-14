@@ -38,4 +38,4 @@ with skip connections and sigmoid output activation.
 - **Open weights:** Publicly available on GitHub, no registration required.
 - **Published research:** Published at CVPR Workshops 2019.
 - **Training data:** Natural Image Noise Dataset (NIND) from Wikimedia Commons -- Creative Commons licensed photographs with real-world noise. Fully public and documented.
-- **Purpose:** Image denoising -- non-destructive photo editing task. Runs locally, no external services.
+- **Purpose:** Image denoising - photo editing task. Runs locally, no external services.

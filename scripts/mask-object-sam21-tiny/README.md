@@ -53,4 +53,4 @@ projections (conv_s0, conv_s1).
 - **Open weights:** Publicly available from Meta, no registration required.
 - **Published research:** Published with technical report (arXiv 2024).
 - **Training data:** SA-V video dataset (50.9K videos, 642.6K masklets) + SA-1B (1 billion masks). Training data is publicly documented by Meta.
-- **Purpose:** Object segmentation for masking -- non-destructive photo editing task. Runs locally, no external services.
+- **Purpose:** Object segmentation for masking - photo editing task. Runs locally, no external services.

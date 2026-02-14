@@ -38,4 +38,4 @@ DINOv2-Small encoder + DPT (Dense Prediction Transformer) decoder.
 - **Open weights:** Publicly available on HuggingFace, no registration required.
 - **Published research:** Published with technical report (arXiv 2024).
 - **Training data:** Synthetic datasets (Hypersim, Virtual KITTI, BlendedMVS, etc.) + pseudo-labeled real images. All training sources are publicly documented.
-- **Purpose:** Depth estimation for masking -- non-destructive photo editing task. Runs locally, no external services.
+- **Purpose:** Depth estimation for masking - photo editing task. Runs locally, no external services.

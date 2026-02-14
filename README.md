@@ -71,7 +71,7 @@ Darktable is free software licensed under [GPL-3.0](https://www.gnu.org/licenses
 
 - **Training data transparency.** We prefer models trained on publicly documented datasets with clear provenance. Models trained on undisclosed or scraped personal data without consent are not accepted.
 - **Privacy by design.** All inference runs locally on the user's machine. No data is sent to external services. No telemetry, no cloud dependencies.
-- **Purpose-limited scope.** Models are selected strictly for non-destructive photo editing tasks (denoising, masking, depth estimation). We do not include models designed for generating, manipulating, or synthesizing human likenesses.
+- **Purpose-limited scope.** Models are selected for photo editing tasks: denoising, masking, depth estimation, and object removal (inpainting), etc. We do not include models designed for generating, manipulating, or synthesizing human likenesses.
 - **Reproducibility.** Conversion scripts, model configurations, and source references are fully documented so that any user can verify and rebuild the ONNX models from the original checkpoints.
 
 ## Adding a new model
