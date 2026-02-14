@@ -13,6 +13,7 @@ ONNX models and conversion scripts for darktable image processing.
 | `mask-object-sam21-tiny`    | mask    | SAM 2.1 (Hiera Tiny) for masking              |
 | `mask-object-sam21-small`   | mask    | SAM 2.1 (Hiera Small) for masking             |
 | `mask-object-sam21hq-large` | mask    | HQ-SAM 2.1 (Hiera Large) for masking         |
+| `mask-depth-da2-small`      | mask    | Depth Anything V2 Small for depth masking     |
 | `mask-depth-da3mono-large`  | mask    | Depth Anything 3 Mono-Large for depth masking |
 
 ## Repository structure

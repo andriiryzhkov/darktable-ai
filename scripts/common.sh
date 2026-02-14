@@ -13,6 +13,10 @@
 #   CHECKPOINT_URLS[]     - array of download URLs (supports direct URLs,
 #                           Google Drive URLs, or gdrive://FILE_ID)
 #   CHECKPOINT_PATHS[]    - array of paths relative to ROOT_DIR
+#
+# Optional variables for pre-converted ONNX models (no conversion needed):
+#   ONNX_URLS[]           - array of pre-converted ONNX download URLs
+#   ONNX_PATHS[]          - array of output paths relative to ROOT_DIR
 
 ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
@@ -92,6 +96,20 @@ download_checkpoints() {
     done
 }
 
+download_onnx_models() {
+    for i in "${!ONNX_URLS[@]}"; do
+        local url="${ONNX_URLS[$i]}"
+        local path="$ROOT_DIR/${ONNX_PATHS[$i]}"
+        if ! [ -f "$path" ]; then
+            echo "Downloading ONNX model: $(basename "$path")..."
+            mkdir -p "$(dirname "$path")"
+            curl -L "$url" -o "$path"
+        else
+            echo "ONNX model already exists at $path"
+        fi
+    done
+}
+
 activate_venv() {
     if [ ! -d "$VENV_DIR" ]; then
         echo "Error: Virtual environment not found. Run ./setup_env.sh first."
@@ -108,7 +126,7 @@ clean_env() {
         rm -rf "$VENV_DIR"
     fi
 
-    if [ -d "$SCRIPT_DIR/$REPO_DIR" ]; then
+    if [ -n "$REPO_DIR" ] && [ -d "$SCRIPT_DIR/$REPO_DIR" ]; then
         echo "Removing $REPO_DIR repository at $SCRIPT_DIR/$REPO_DIR..."
         rm -rf "$SCRIPT_DIR/$REPO_DIR"
     fi

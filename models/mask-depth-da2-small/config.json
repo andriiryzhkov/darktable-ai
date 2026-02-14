@@ -1,0 +1,9 @@
+{
+    "id": "mask-depth-da2-small",
+    "name": "mask depth anything v2 small",
+    "description": "Depth Anything V2 Small for depth-based masking",
+    "task": "mask",
+    "backend": "onnx",
+    "version": "1.0",
+    "tiling": false
+}

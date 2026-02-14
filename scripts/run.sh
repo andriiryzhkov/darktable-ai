@@ -30,6 +30,12 @@ echo ""
 echo "=== Convert ==="
 bash "$MODEL_DIR/run_conversion.sh"
 
+if [ -f "$MODEL_DIR/run_demo.sh" ]; then
+    echo ""
+    echo "=== Demo ==="
+    bash "$MODEL_DIR/run_demo.sh"
+fi
+
 echo ""
 echo "=== Clean ==="
 bash "$MODEL_DIR/clean_env.sh"
