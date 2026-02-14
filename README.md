@@ -1,6 +1,6 @@
 # Darktable AI Models
 
-ONNX models and conversion scripts for darktable image processing.
+ONNX models and conversion scripts for [darktable](https://www.darktable.org/) - an open-source photography workflow application and raw developer ([GitHub](https://github.com/darktable-org/darktable)).
 
 ## Models
 
