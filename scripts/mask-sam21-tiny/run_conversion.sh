@@ -7,7 +7,7 @@ source "$SCRIPT_DIR/../common.sh"
 
 activate_venv
 
-python3 "$SCRIPT_DIR/export_onnx_model.py" \
+python3 "$SCRIPT_DIR/../mask-sam21-small/export_onnx_model.py" \
     --model-cfg "configs/sam2.1/sam2.1_hiera_t.yaml" \
     --checkpoint "$ROOT_DIR/checkpoints/mask-sam21-tiny/sam2.1_hiera_tiny.pt" \
     --output-dir "$ROOT_DIR/models/mask-sam21-tiny"
