@@ -10,10 +10,9 @@
 # Input:  RGB image [1, 3, H, W]  (float32, ImageNet-normalized)
 # Output: depth map [1, 1, H, W]  (float32, relative depth)
 #
-# H and W must be divisible by 14 (ViT patch size).
-# Dynamic spatial dimensions are enabled so any valid resolution works at
-# runtime; the tracing resolution (--height/--width) is used only for the
-# dummy input during export.
+# H and W must be divisible by 14 (ViT patch size).  RoPE positional
+# embeddings are baked at the export resolution, so runtime input must
+# match --height/--width exactly (default: 504x504).
 #
 # Based on DA3Mono-Large-ONNX-Conversion-Guide.md and
 # ika-rwth-aachen/ros2-depth-anything-v3-trt/onnx/export.py
@@ -206,10 +205,6 @@ if __name__ == "__main__":
                 do_constant_folding=True,
                 input_names=["image"],
                 output_names=["depth"],
-                dynamic_axes={
-                    "image": {2: "height", 3: "width"},
-                    "depth": {2: "height", 3: "width"},
-                },
                 dynamo=False,
             )
 
