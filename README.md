@@ -4,17 +4,17 @@ ONNX models and conversion scripts for darktable image processing.
 
 ## Models
 
-| Model                       | Task    | Description                                   |
-|-----------------------------|---------|-----------------------------------------------|
-| `denoise-nafnet`            | denoise | NAFNet denoiser trained on SIDD dataset       |
-| `denoise-nind`              | denoise | UNet denoiser trained on NIND dataset         |
-| `mask-object-samhq-light`   | mask    | HQ-SAM Light (ViT-Tiny) for masking           |
-| `mask-object-samhq-base`    | mask    | HQ-SAM (ViT-B) for masking                    |
-| `mask-object-sam21-tiny`    | mask    | SAM 2.1 (Hiera Tiny) for masking              |
-| `mask-object-sam21-small`   | mask    | SAM 2.1 (Hiera Small) for masking             |
-| `mask-object-sam21hq-large` | mask    | HQ-SAM 2.1 (Hiera Large) for masking         |
-| `mask-depth-da2-small`      | mask    | Depth Anything V2 Small for depth masking     |
-| `mask-depth-da3mono-large`  | mask    | Depth Anything 3 Mono-Large for depth masking |
+| Model                                                                      | Task    | Description                                   |
+|----------------------------------------------------------------------------|---------|-----------------------------------------------|
+| [`denoise-nafnet`](scripts/denoise-nafnet/README.md)                       | denoise | NAFNet denoiser trained on SIDD dataset       |
+| [`denoise-nind`](scripts/denoise-nind/README.md)                          | denoise | UNet denoiser trained on NIND dataset         |
+| [`mask-object-samhq-light`](scripts/mask-object-samhq-light/README.md)    | mask    | HQ-SAM Light (ViT-Tiny) for masking           |
+| [`mask-object-samhq-base`](scripts/mask-object-samhq-base/README.md)      | mask    | HQ-SAM (ViT-B) for masking                    |
+| [`mask-object-sam21-tiny`](scripts/mask-object-sam21-tiny/README.md)       | mask    | SAM 2.1 (Hiera Tiny) for masking              |
+| [`mask-object-sam21-small`](scripts/mask-object-sam21-small/README.md)     | mask    | SAM 2.1 (Hiera Small) for masking             |
+| [`mask-object-sam21hq-large`](scripts/mask-object-sam21hq-large/README.md) | mask    | HQ-SAM 2.1 (Hiera Large) for masking         |
+| [`mask-depth-da2-small`](scripts/mask-depth-da2-small/README.md)           | mask    | Depth Anything V2 Small for depth masking     |
+| [`mask-depth-da3mono-large`](scripts/mask-depth-da3mono-large/README.md)   | mask    | Depth Anything 3 Mono-Large for depth masking |
 
 ## Repository structure
 
