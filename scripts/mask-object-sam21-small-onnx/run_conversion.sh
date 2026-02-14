@@ -8,7 +8,7 @@ source "$SCRIPT_DIR/../common.sh"
 
 activate_venv
 
-CHECKPOINT_DIR="$ROOT_DIR/checkpoints/mask-object-sam21-small-onnx"
+CHECKPOINT_DIR="$ROOT_DIR/temp/mask-object-sam21-small-onnx"
 MODEL_DIR="$ROOT_DIR/models/mask-object-sam21-small-onnx"
 
 python3 "$SCRIPT_DIR/merge_onnx.py" \

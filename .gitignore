@@ -231,5 +231,5 @@ macOS
 *.tar.bz2
 *.tar.xz
 
-# AI model checkpoints
-checkpoints/
+# AI model temp files (downloaded checkpoints before conversion)
+temp/

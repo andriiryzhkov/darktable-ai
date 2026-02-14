@@ -9,5 +9,5 @@ activate_venv
 
 python3 "$SCRIPT_DIR/export_onnx_model.py" \
     --model-cfg "configs/sam2.1/sam2.1_hq_hiera_l.yaml" \
-    --checkpoint "$ROOT_DIR/checkpoints/mask-object-sam21hq-large/sam2.1_hq_hiera_large.pt" \
+    --checkpoint "$ROOT_DIR/temp/mask-object-sam21hq-large/sam2.1_hq_hiera_large.pt" \
     --output-dir "$ROOT_DIR/models/mask-object-sam21hq-large"

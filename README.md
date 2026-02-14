@@ -20,7 +20,7 @@ ONNX models and conversion scripts for darktable image processing.
 ## Repository structure
 
 ```
-checkpoints/          PyTorch checkpoints (downloaded by setup scripts)
+temp/                 Downloaded checkpoints (before conversion, gitignored)
 models/               ONNX models + config.json per model
 scripts/
   common.sh           Shared shell functions for setup/clean/convert
