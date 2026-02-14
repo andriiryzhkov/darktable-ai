@@ -2,7 +2,7 @@
     "id": "mask-depth-da2-small",
     "name": "mask depth anything v2 small",
     "description": "Depth Anything V2 Small for depth-based masking",
-    "task": "mask",
+    "task": "depth",
     "backend": "onnx",
     "version": "1.0",
     "tiling": false

@@ -14,8 +14,8 @@ ONNX models and conversion scripts for [darktable](https://www.darktable.org/) -
 | [`mask-object-sam21-small`](scripts/mask-object-sam21-small/README.md)           | mask    | SAM 2.1 (Hiera Small) for masking             |
 | [`mask-object-sam21-small-onnx`](scripts/mask-object-sam21-small-onnx/README.md) | mask    | SAM 2.1 (Hiera Small) pre-converted ONNX      |
 | [`mask-object-sam21hq-large`](scripts/mask-object-sam21hq-large/README.md)       | mask    | HQ-SAM 2.1 (Hiera Large) for masking          |
-| [`mask-depth-da2-small`](scripts/mask-depth-da2-small/README.md)                 | mask    | Depth Anything V2 Small for depth masking     |
-| [`mask-depth-da3mono-large`](scripts/mask-depth-da3mono-large/README.md)         | mask    | Depth Anything 3 Mono-Large for depth masking |
+| [`mask-depth-da2-small`](scripts/mask-depth-da2-small/README.md)                 | depth    | Depth Anything V2 Small for depth masking     |
+| [`mask-depth-da3mono-large`](scripts/mask-depth-da3mono-large/README.md)         | depth    | Depth Anything 3 Mono-Large for depth masking |
 
 ## Repository structure
 
