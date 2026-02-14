@@ -1,0 +1,9 @@
+{
+    "id": "mask-object-sam21-small-onnx",
+    "name": "mask object sam 2.1 hiera small onnx",
+    "description": "SAM 2.1 Hiera Small pre-converted ONNX for masking",
+    "task": "mask",
+    "backend": "onnx",
+    "version": "1.0",
+    "tiling": false
+}
