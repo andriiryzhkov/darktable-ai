@@ -10,7 +10,7 @@ import numpy as np
 import onnxruntime as ort
 import time
 
-def run_inference(model_path, input_path, output_path):
+def run_inference(model_path, input_path, output_path, max_size=1024):
     # Check inputs
     if not os.path.exists(model_path):
         raise FileNotFoundError(f"Model not found at {model_path}")
@@ -34,7 +34,13 @@ def run_inference(model_path, input_path, output_path):
     img = cv2.imread(input_path) # BGR
     if img is None:
         raise ValueError(f"Could not read image: {input_path}")
-        
+    h, w = img.shape[:2]
+    print(f"  Original size: {w}x{h}")
+    if max_size > 0 and max(h, w) > max_size:
+        scale = max_size / max(h, w)
+        img = cv2.resize(img, (int(w * scale), int(h * scale)), interpolation=cv2.INTER_AREA)
+        print(f"  Resized to:    {img.shape[1]}x{img.shape[0]}")
+
     # 2. Preprocessing
     # BGR to RGB
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -87,10 +93,12 @@ def main():
     parser.add_argument('--model', type=str, required=True, help='Path to ONNX model')
     parser.add_argument('--image', type=str, required=True, help='Path to input image')
     parser.add_argument('--output', type=str, required=True, help='Path to output image')
-    
+    parser.add_argument('--max-size', type=int, default=1024,
+                        help='Downscale longest edge to this (0 = full resolution)')
+
     args = parser.parse_args()
     
-    run_inference(args.model, args.image, args.output)
+    run_inference(args.model, args.image, args.output, max_size=args.max_size)
 
 if __name__ == '__main__':
     main()

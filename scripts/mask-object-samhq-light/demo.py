@@ -86,7 +86,6 @@ def main():
     point_labels = np.array([[1.0]], dtype=np.float32)
     mask_input = np.zeros((1, 1, 256, 256), dtype=np.float32)
     has_mask_input = np.array([0.0], dtype=np.float32)
-    orig_im_size = np.array([[orig_h, orig_w]], dtype=np.float32)
     print(f"  Point (1024):  ({point_coords[0,0,0]:.0f}, {point_coords[0,0,1]:.0f})")
 
     # Run decoder
@@ -98,7 +97,6 @@ def main():
         "point_labels": point_labels,
         "mask_input": mask_input,
         "has_mask_input": has_mask_input,
-        "orig_im_size": orig_im_size,
     })
     masks, iou_predictions, low_res_masks = dec_outputs
     t_dec = time.perf_counter()
@@ -106,9 +104,12 @@ def main():
     print(f"  Masks shape:   {masks.shape}")
     print(f"  IoU score:     {iou_predictions[0, 0]:.4f}")
 
-    # Single HQ mask output [1, 1, H, W] at original resolution
+    # Single HQ mask output [1, 1, 1024, 1024] — resize to original image size
     mask_logits = masks[0, 0]
-    mask_binary = (mask_logits > 0).astype(np.float32)
+    mask_binary = (mask_logits > 0).astype(np.uint8) * 255
+    mask_pil = Image.fromarray(mask_binary)
+    mask_pil = mask_pil.resize((orig_w, orig_h), Image.LANCZOS)
+    mask_binary = np.array(mask_pil).astype(np.float32) / 255.0
 
     # Save overlay
     result = make_overlay(image, mask_binary)

@@ -33,13 +33,13 @@ projections (conv_s0, conv_s1).
 | Input 1     | `image_embed` — float32 [1, 256, 64, 64]       |
 | Input 2     | `high_res_feats_0` — float32 [1, 32, 256, 256] |
 | Input 3     | `high_res_feats_1` — float32 [1, 64, 128, 128] |
-| Input 4     | `point_coords` — float32 [B, N, 2]             |
-| Input 5     | `point_labels` — float32 [B, N]                |
-| Input 6     | `mask_input` — float32 [B, 1, 256, 256]        |
+| Input 4     | `point_coords` — float32 [1, N, 2]             |
+| Input 5     | `point_labels` — float32 [1, N]                |
+| Input 6     | `mask_input` — float32 [1, 1, 256, 256]        |
 | Input 7     | `has_mask_input` — float32 [1]                  |
-| Output 1    | `masks` — float32 [B, 3, 1024, 1024]           |
-| Output 2    | `iou_predictions` — float32 [B, 3]             |
-| Output 3    | `low_res_masks` — float32 [B, 3, 256, 256]     |
+| Output 1    | `masks` — float32 [1, 3, 1024, 1024]           |
+| Output 2    | `iou_predictions` — float32 [1, 3]             |
+| Output 3    | `low_res_masks` — float32 [1, 3, 256, 256]     |
 
 ## Notes
 

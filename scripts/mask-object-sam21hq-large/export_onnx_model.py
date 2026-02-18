@@ -310,11 +310,8 @@ def run_decoder_export(
     _ = decoder(**dummy_inputs)
 
     dynamic_axes = {
-        "point_coords": {0: "num_labels", 1: "num_points"},
-        "point_labels": {0: "num_labels", 1: "num_points"},
-        "mask_input": {0: "num_labels"},
-        "has_mask_input": {0: "num_labels"},
-        "low_res_masks": {0: "num_labels"},
+        "point_coords": {1: "num_points"},
+        "point_labels": {1: "num_points"},
     }
 
     with warnings.catch_warnings():

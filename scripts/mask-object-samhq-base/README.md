@@ -35,15 +35,14 @@ refinement for improved boundary quality.
 | Input 4     | `point_labels` — float32 [1, N]                |
 | Input 5     | `mask_input` — float32 [1, 1, 256, 256]        |
 | Input 6     | `has_mask_input` — float32 [1]                  |
-| Input 7     | `orig_im_size` — float32 [1, 2]                |
-| Output 1    | `masks` — float32 [1, 1, H, W]                 |
+| Output 1    | `masks` — float32 [1, 1, 1024, 1024]            |
 | Output 2    | `iou_predictions` — float32 [1, 1]             |
 | Output 3    | `low_res_masks` — float32 [1, 1, 256, 256]     |
 
 ## Notes
 
 - Exported with `--hq-token-only` (single HQ mask output, no multi-mask).
-- Output mask resolution matches `orig_im_size`.
+- Output masks are always 1024x1024 (resize to original image size at runtime).
 - Point labels: 0 = background, 1 = foreground, 2 = top-left box corner, 3 = bottom-right box corner.
 - 4 intermediate embeddings from ViT-B global attention blocks (dim 768).
 

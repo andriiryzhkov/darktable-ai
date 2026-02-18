@@ -35,6 +35,17 @@ setup_venv() {
 
     echo "Installing project dependencies..."
     pip install -r "$SCRIPT_DIR/requirements.txt"
+
+    # Install optional dependencies (best-effort, one at a time).
+    if [ -f "$SCRIPT_DIR/optional-requirements.txt" ]; then
+        echo "Installing optional dependencies (failures are non-fatal)..."
+        while IFS= read -r pkg || [ -n "$pkg" ]; do
+            pkg="${pkg%%#*}"       # strip comments
+            pkg="${pkg// /}"       # strip whitespace
+            [ -z "$pkg" ] && continue
+            pip install "$pkg" || echo "  Warning: optional package '$pkg' failed to install, skipping."
+        done < "$SCRIPT_DIR/optional-requirements.txt"
+    fi
 }
 
 clone_and_install_repo() {

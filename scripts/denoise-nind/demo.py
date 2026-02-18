@@ -20,6 +20,8 @@ def main():
     parser.add_argument("--model", type=str, required=True, help="Path to model.onnx")
     parser.add_argument("--image", type=str, required=True, help="Input image path")
     parser.add_argument("--output", type=str, required=True, help="Output PNG path")
+    parser.add_argument("--max-size", type=int, default=1024,
+                        help="Downscale longest edge to this (0 = full resolution)")
     args = parser.parse_args()
 
     os.makedirs(os.path.dirname(args.output) or ".", exist_ok=True)
@@ -41,7 +43,10 @@ def main():
     image = ImageOps.exif_transpose(image)
     image = image.convert("RGB")
     t_image = time.perf_counter()
-    print(f"  Size:          {image.size[0]}x{image.size[1]}")
+    print(f"  Original size: {image.size[0]}x{image.size[1]}")
+    if args.max_size > 0:
+        image.thumbnail((args.max_size, args.max_size), Image.LANCZOS)
+        print(f"  Resized to:    {image.size[0]}x{image.size[1]}")
     print(f"  Load image:    {t_image - t_model:.3f}s")
 
     # Preprocess: RGB [0, 1], BCHW

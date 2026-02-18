@@ -10,8 +10,9 @@ import warnings
 import torch
 import torch.nn as nn
 
+from torch.nn import functional as F
+
 from segment_anything import sam_model_registry
-from segment_anything.utils.onnx import SamOnnxModel
 
 try:
     import onnxruntime  # type: ignore
@@ -73,21 +74,6 @@ parser.add_argument(
     help="If set, quantize the decoder model (uint8) and save to this path.",
 )
 
-parser.add_argument(
-    "--gelu-approximate", action="store_true",
-    help="Replace GELU with tanh approximation (useful for runtimes with slow erf).",
-)
-
-parser.add_argument(
-    "--use-stability-score", action="store_true",
-    help="Replace predicted mask quality score with stability score.",
-)
-
-parser.add_argument(
-    "--return-extra-metrics", action="store_true",
-    help="Return (masks, scores, stability_scores, areas, low_res_logits).",
-)
-
 
 class SamEncoderOnnxModel(nn.Module):
     """Wraps the SAM-HQ image encoder for ONNX export.
@@ -110,6 +96,121 @@ class SamEncoderOnnxModel(nn.Module):
 
 def to_numpy(tensor):
     return tensor.cpu().numpy()
+
+
+class SamHQDecoderOnnxModel(nn.Module):
+    """Wraps SAM-HQ prompt encoder + mask decoder for ONNX export.
+
+    Outputs fixed 1024x1024 masks (no orig_im_size input) for a unified
+    decoder interface across all SAM variants.
+
+    Inputs:
+        image_embeddings:  (1, embed_dim, H, W)
+        interm_embeddings: (num_interm, 1, H, W, encoder_embed_dim)
+        point_coords:      (1, N, 2)
+        point_labels:      (1, N)
+        mask_input:        (1, 1, 4*H, 4*W)
+        has_mask_input:    (1,)
+
+    Outputs:
+        masks:           (1, 1, 1024, 1024)
+        iou_predictions: (1, 1)
+        low_res_masks:   (1, 1, 256, 256)
+    """
+
+    def __init__(self, model, hq_token_only=False, multimask_output=False):
+        super().__init__()
+        self.mask_decoder = model.mask_decoder
+        self.model = model
+        self.img_size = model.image_encoder.img_size
+        self.hq_token_only = hq_token_only
+        self.multimask_output = multimask_output
+
+    def _embed_points(self, point_coords, point_labels):
+        point_coords = point_coords + 0.5
+        point_coords = point_coords / self.img_size
+        point_embedding = self.model.prompt_encoder.pe_layer._pe_encoding(point_coords)
+        point_labels = point_labels.unsqueeze(-1).expand_as(point_embedding)
+
+        point_embedding = point_embedding * (point_labels != -1)
+        point_embedding = point_embedding + self.model.prompt_encoder.not_a_point_embed.weight * (
+            point_labels == -1
+        )
+
+        for i in range(self.model.prompt_encoder.num_point_embeddings):
+            point_embedding = point_embedding + self.model.prompt_encoder.point_embeddings[
+                i
+            ].weight * (point_labels == i)
+
+        return point_embedding
+
+    def _embed_masks(self, input_mask, has_mask_input):
+        mask_embedding = has_mask_input * self.model.prompt_encoder.mask_downscaling(input_mask)
+        mask_embedding = mask_embedding + (
+            1 - has_mask_input
+        ) * self.model.prompt_encoder.no_mask_embed.weight.reshape(1, -1, 1, 1)
+        return mask_embedding
+
+    @torch.no_grad()
+    def forward(
+        self,
+        image_embeddings,
+        interm_embeddings,
+        point_coords,
+        point_labels,
+        mask_input,
+        has_mask_input,
+    ):
+        sparse_embedding = self._embed_points(point_coords, point_labels)
+        dense_embedding = self._embed_masks(mask_input, has_mask_input)
+
+        # Compute HQ features from intermediate ViT embeddings
+        vit_features = interm_embeddings[0].permute(0, 3, 1, 2)
+        hq_features = (
+            self.mask_decoder.embedding_encoder(image_embeddings)
+            + self.mask_decoder.compress_vit_feat(vit_features)
+        )
+
+        masks, scores = self.mask_decoder.predict_masks(
+            image_embeddings=image_embeddings,
+            image_pe=self.model.prompt_encoder.get_dense_pe(),
+            sparse_prompt_embeddings=sparse_embedding,
+            dense_prompt_embeddings=dense_embedding,
+            hq_features=hq_features,
+        )
+
+        # Select mask output
+        if self.multimask_output:
+            mask_slice = slice(1, self.mask_decoder.num_mask_tokens - 1)
+            scores_multi = scores[:, mask_slice]
+            scores_multi, max_iou_idx = torch.max(scores_multi, dim=1)
+            scores = scores_multi.unsqueeze(1)
+            masks_multi = masks[:, mask_slice, :, :]
+            masks_sam = masks_multi[
+                torch.arange(masks_multi.size(0)), max_iou_idx
+            ].unsqueeze(1)
+        else:
+            scores = scores[:, :1]
+            masks_sam = masks[:, :1]
+
+        masks_hq = masks[
+            :,
+            self.mask_decoder.num_mask_tokens - 1 : self.mask_decoder.num_mask_tokens,
+        ]
+
+        if self.hq_token_only:
+            masks = masks_hq
+        else:
+            masks = masks_sam + masks_hq
+
+        low_res_masks = masks
+
+        # Upscale to 1024x1024 (unified output resolution)
+        masks = F.interpolate(
+            masks, size=(1024, 1024), mode="bilinear", align_corners=False
+        )
+
+        return masks, scores, low_res_masks
 
 
 def run_encoder_export(sam, model_type, output, opset):
@@ -151,23 +252,13 @@ def run_decoder_export(
     opset,
     hq_token_only=False,
     multimask_output=False,
-    gelu_approximate=False,
-    use_stability_score=False,
-    return_extra_metrics=False,
 ):
     """Export the prompt encoder + mask decoder to ONNX."""
-    onnx_model = SamOnnxModel(
+    onnx_model = SamHQDecoderOnnxModel(
         model=sam,
         hq_token_only=hq_token_only,
         multimask_output=multimask_output,
-        use_stability_score=use_stability_score,
-        return_extra_metrics=return_extra_metrics,
     )
-
-    if gelu_approximate:
-        for _, m in onnx_model.named_modules():
-            if isinstance(m, torch.nn.GELU):
-                m.approximate = "tanh"
 
     dynamic_axes = {
         "point_coords": {1: "num_points"},
@@ -191,7 +282,6 @@ def run_decoder_export(
         "point_labels": torch.randint(low=0, high=4, size=(1, 5), dtype=torch.float),
         "mask_input": torch.randn(1, 1, *mask_input_size, dtype=torch.float),
         "has_mask_input": torch.tensor([1], dtype=torch.float),
-        "orig_im_size": torch.tensor([1500, 2250], dtype=torch.float),
     }
 
     _ = onnx_model(**dummy_inputs)
@@ -249,9 +339,6 @@ if __name__ == "__main__":
         opset=args.opset,
         hq_token_only=args.hq_token_only,
         multimask_output=args.multimask_output,
-        gelu_approximate=args.gelu_approximate,
-        use_stability_score=args.use_stability_score,
-        return_extra_metrics=args.return_extra_metrics,
     )
 
     if args.quantize_out is not None:
