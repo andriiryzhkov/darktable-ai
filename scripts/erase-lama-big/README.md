@@ -36,10 +36,18 @@ trained with a larger training schedule on Places365.
 - Fixed 512x512 resolution. Resize input and mask before inference, resize output back to original size.
 - Pre-converted ONNX from HuggingFace. Full precision (float32).
 
-## Selection criteria compliance
+## Selection Criteria
 
-- **License:** Apache-2.0 -- permissive, GPL-3.0 compatible.
-- **Open weights:** Publicly available on HuggingFace, no registration required.
-- **Published research:** Peer-reviewed at WACV 2022.
-- **Training data:** Places365 dataset (scene recognition dataset with ~1.8M images). Publicly available and well-documented.
-- **Purpose:** Image inpainting (object erasure) - photo editing task. Runs locally, no external services.
+| Property                 | Value                                                                                                                 |
+|--------------------------|-----------------------------------------------------------------------------------------------------------------------|
+| Model license            | Apache-2.0                                                                                                            |
+| OSAID v1.0               | Open Weights                                                                                                          |
+| MOF                      | Class II (Open Tooling)                                                                                               |
+| Training data license    | Custom non-commercial (MIT CSAIL terms)                                                                               |
+| Training data provenance | [Places365](http://places2.csail.mit.edu/) (~1.8M scene images, MIT CSAIL, sourced from internet)                     |
+| Training code            | [Apache-2.0](https://github.com/advimman/lama)                                                                       |
+| Known limitations        | Places365: non-commercial research/education terms (not OSI), prohibits redistribution. Individual image copyrights belong to original uploaders, not auditable |
+| Published research       | [Resolution-robust Large Mask Inpainting with Fourier Convolutions](https://arxiv.org/abs/2109.07161) (WACV 2022)    |
+| Inference                | Local only, no cloud dependencies                                                                                     |
+| Scope                    | Object erasure (inpainting)                                                                                           |
+| Reproducibility          | Pre-converted ONNX; full demo pipeline provided                                                                       |

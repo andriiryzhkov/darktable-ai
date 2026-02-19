@@ -50,10 +50,18 @@ precision than the standard SAM masks.
 - Output masks are always 1024x1024 (resize to original image size at runtime).
 - `low_res_masks` (256x256) can be fed back as `mask_input` for iterative refinement.
 
-## Selection criteria compliance
+## Selection Criteria
 
-- **License:** Apache-2.0 -- permissive, GPL-3.0 compatible.
-- **Open weights:** Publicly available on HuggingFace, no registration required.
-- **Published research:** HQ-SAM peer-reviewed at NeurIPS 2023; SAM 2 published with technical report (arXiv 2024).
-- **Training data:** SA-V video dataset + SA-1B (1 billion masks, 11 million licensed images). Training data is publicly documented by Meta.
-- **Purpose:** Object segmentation for masking - photo editing task. Runs locally, no external services.
+| Property                 | Value                                                                                       |
+|--------------------------|---------------------------------------------------------------------------------------------|
+| Model license            | Apache-2.0                                                                                  |
+| OSAID v1.0               | Open Weights                                                                                |
+| MOF                      | Class II (Open Tooling)                                                                     |
+| Training data license    | SA-V: CC BY 4.0; SA-1B: custom Meta research-only; HQ-Seg44K: mixed                        |
+| Training data provenance | [SA-V](https://ai.meta.com/datasets/segment-anything-video/) + [SA-1B](https://ai.meta.com/datasets/segment-anything/) (SAM 2.1 base) + HQ-Seg44K (44K images, HQ tuning) |
+| Training code            | [Apache-2.0](https://github.com/SysCV/sam-hq)                                              |
+| Known limitations        | SA-1B: unnamed stock provider, research-only license (not OSI). HQ-Seg44K: ThinObject-5K (CC BY-NC 4.0), DUT-OMRON (all rights reserved), FSS-1000/ECSSD (no license) |
+| Published research       | [Segment Anything in High Quality](https://arxiv.org/abs/2306.01567) (NeurIPS 2023)        |
+| Inference                | Local only, no cloud dependencies                                                           |
+| Scope                    | Object segmentation                                                                         |
+| Reproducibility          | Full pipeline (setup, convert, clean, demo)                                                 |

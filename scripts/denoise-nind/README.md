@@ -32,10 +32,18 @@ with skip connections and sigmoid output activation.
 - Output is clamped to [0, 1] by the sigmoid activation.
 - Exported with FP16 precision.
 
-## Selection criteria compliance
+## Selection Criteria
 
-- **License:** GPL-3.0 -- same license as darktable.
-- **Open weights:** Publicly available on GitHub, no registration required.
-- **Published research:** Published at CVPR Workshops 2019.
-- **Training data:** Natural Image Noise Dataset (NIND) from Wikimedia Commons -- Creative Commons licensed photographs with real-world noise. Fully public and documented.
-- **Purpose:** Image denoising - photo editing task. Runs locally, no external services.
+| Property                 | Value                                                                                  |
+|--------------------------|----------------------------------------------------------------------------------------|
+| Model license            | GPL-3.0                                                                                |
+| OSAID v1.0               | Open Source AI                                                                         |
+| MOF                      | Class I (Open Science)                                                                 |
+| Training data license    | CC BY 4.0 / CC0 (per-image, Wikimedia Commons)                                        |
+| Training data provenance | Real-world noise/clean pairs photographed by authors, published on [Wikimedia Commons](https://commons.wikimedia.org/wiki/Natural_Image_Noise_Dataset) |
+| Training code            | [GPL-3.0](https://github.com/trougnouf/nind-denoise)                                  |
+| Known limitations        | None — all components publicly available under open licenses                           |
+| Published research       | [Natural Image Noise Dataset](https://arxiv.org/abs/1906.00270) (CVPR Workshops 2019) |
+| Inference                | Local only, no cloud dependencies                                                      |
+| Scope                    | Image denoising                                                                        |
+| Reproducibility          | Full pipeline (setup, convert, clean, demo)                                            |

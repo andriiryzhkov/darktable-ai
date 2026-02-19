@@ -49,10 +49,18 @@ as pre-converted ONNX.
 - Decoder outputs low-res masks (upscale to original image size at runtime).
 - Full precision (float32).
 
-## Selection criteria compliance
+## Selection Criteria
 
-- **License:** Apache-2.0 -- permissive, GPL-3.0 compatible.
-- **Open weights:** Publicly available from Meta (original) and HuggingFace (ONNX), no registration required.
-- **Published research:** Published with technical report (arXiv 2024).
-- **Training data:** SA-V video dataset (50.9K videos, 642.6K masklets) + SA-1B (1 billion masks). Training data is publicly documented by Meta.
-- **Purpose:** Object segmentation for masking - photo editing task. Runs locally, no external services.
+| Property                 | Value                                                                                   |
+|--------------------------|-----------------------------------------------------------------------------------------|
+| Model license            | Apache-2.0                                                                              |
+| OSAID v1.0               | Open Weights                                                                            |
+| MOF                      | Class II (Open Tooling)                                                                 |
+| Training data license    | SA-V: CC BY 4.0; SA-1B: custom Meta research-only license                              |
+| Training data provenance | Same as `mask-object-sam21-small` (pre-converted ONNX by HuggingFace)                  |
+| Training code            | [Apache-2.0](https://github.com/facebookresearch/sam2)                                 |
+| Known limitations        | See `mask-object-sam21-small` model card                                                |
+| Published research       | [SAM 2: Segment Anything in Images and Videos](https://arxiv.org/abs/2408.00714) (2024) |
+| Inference                | Local only, no cloud dependencies                                                       |
+| Scope                    | Object segmentation                                                                     |
+| Reproducibility          | Pre-converted ONNX; full demo pipeline provided                                        |

@@ -33,10 +33,18 @@ DINOv2-Large encoder + DualDPT decoder. The model predicts 2 channels
 - Requires `bfloat16 → float16` patch during export (ONNX does not support bfloat16).
 - Heavy dependencies (xformers, open3d, etc.) are stubbed out during export — only the core model is needed.
 
-## Selection criteria compliance
+## Selection Criteria
 
-- **License:** Apache-2.0 -- permissive, GPL-3.0 compatible.
-- **Open weights:** Publicly available on HuggingFace, no registration required.
-- **Published research:** Published with technical report (arXiv 2025).
-- **Training data:** Synthetic datasets + large-scale pseudo-labeled real images with scale-and-shift-invariant training. All training sources are publicly documented.
-- **Purpose:** Depth estimation for masking - photo editing task. Runs locally, no external services.
+| Property                 | Value                                                                              |
+|--------------------------|------------------------------------------------------------------------------------|
+| Model license            | Apache-2.0                                                                         |
+| OSAID v1.0               | Open Weights                                                                       |
+| MOF                      | Class II (Open Tooling)                                                            |
+| Training data license    | Mixed — all public academic datasets (per authors)                                 |
+| Training data provenance | ~69 datasets (synthetic + sensor + SfM/stereo). DINOv2-Large backbone on LVD-142M |
+| Training code            | [Apache-2.0](https://github.com/ByteDance-Seed/Depth-Anything-3)                  |
+| Known limitations        | LVD-142M: 142M web-crawled images, not released by Meta, not auditable. ~69 constituent datasets have varying individual licenses |
+| Published research       | [Depth Anything 3](https://arxiv.org/abs/2511.10647) (2025)                       |
+| Inference                | Local only, no cloud dependencies                                                  |
+| Scope                    | Depth estimation                                                                   |
+| Reproducibility          | Full pipeline (setup, convert, clean, demo)                                        |

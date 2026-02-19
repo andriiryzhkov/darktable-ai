@@ -31,10 +31,18 @@ channel widths [32, 64, 128, 256], 12 middle blocks.
 - Output should be clipped to [0, 1] before converting back to uint8.
 - Exported with FP16 precision.
 
-## Selection criteria compliance
+## Selection Criteria
 
-- **License:** MIT -- permissive, GPL-3.0 compatible.
-- **Open weights:** Publicly available on Google Drive, no registration required.
-- **Published research:** Peer-reviewed at ECCV 2022.
-- **Training data:** SIDD (Smartphone Image Denoising Dataset) -- academic dataset of real smartphone noisy/clean image pairs from 10 scenes captured with 5 smartphones. Publicly documented and available.
-- **Purpose:** Image denoising - photo editing task. Runs locally, no external services.
+| Property                 | Value                                                                                   |
+|--------------------------|-----------------------------------------------------------------------------------------|
+| Model license            | MIT                                                                                     |
+| OSAID v1.0               | Open Source AI                                                                          |
+| MOF                      | Class I (Open Science)                                                                  |
+| Training data license    | MIT                                                                                     |
+| Training data provenance | [SIDD](https://abdokamel.github.io/sidd/) — 30K real smartphone noisy/clean pairs captured by authors (5 devices)            |
+| Training code            | [MIT](https://github.com/megvii-research/NAFNet)                                       |
+| Known limitations        | None — all components publicly available under permissive licenses                      |
+| Published research       | [Simple Baselines for Image Restoration](https://arxiv.org/abs/2204.04676) (ECCV 2022) |
+| Inference                | Local only, no cloud dependencies                                                       |
+| Scope                    | Image denoising                                                                         |
+| Reproducibility          | Full pipeline (setup, convert, clean, demo)                                             |

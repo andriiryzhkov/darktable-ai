@@ -46,10 +46,18 @@ refinement for improved boundary quality.
 - Point labels: 0 = background, 1 = foreground, 2 = top-left box corner, 3 = bottom-right box corner.
 - 4 intermediate embeddings from ViT-B global attention blocks (dim 768).
 
-## Selection criteria compliance
+## Selection Criteria
 
-- **License:** Apache-2.0 -- permissive, GPL-3.0 compatible.
-- **Open weights:** Publicly available on Google Drive, no registration required.
-- **Published research:** Peer-reviewed at NeurIPS 2023.
-- **Training data:** SA-1B dataset (1 billion masks, 11 million licensed images). Training data is publicly documented by Meta with clear provenance.
-- **Purpose:** Object segmentation for masking - photo editing task. Runs locally, no external services.
+| Property                 | Value                                                                                       |
+|--------------------------|---------------------------------------------------------------------------------------------|
+| Model license            | Apache-2.0                                                                                  |
+| OSAID v1.0               | Open Weights                                                                                |
+| MOF                      | Class II (Open Tooling)                                                                     |
+| Training data license    | SA-1B: custom Meta research-only; HQ-Seg44K: mixed                                         |
+| Training data provenance | [SA-1B](https://ai.meta.com/datasets/segment-anything/) (11M stock images) + HQ-Seg44K (44K images, 6 datasets) |
+| Training code            | [Apache-2.0](https://github.com/SysCV/sam-hq)                                              |
+| Known limitations        | SA-1B: unnamed stock provider, research-only license (not OSI), prohibits commercial use/redistribution. HQ-Seg44K: ThinObject-5K (CC BY-NC 4.0), DUT-OMRON (all rights reserved), FSS-1000/ECSSD (no license) |
+| Published research       | [Segment Anything in High Quality](https://arxiv.org/abs/2306.01567) (NeurIPS 2023)        |
+| Inference                | Local only, no cloud dependencies                                                           |
+| Scope                    | Object segmentation                                                                         |
+| Reproducibility          | Full pipeline (setup, convert, clean, demo)                                                 |

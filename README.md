@@ -85,15 +85,24 @@ Output images are saved to `scripts/<model>/output/`.
 
 Darktable is free software licensed under [GPL-3.0](https://www.gnu.org/licenses/gpl-3.0.html). All AI models included in this repository are selected with the following principles in mind.
 
-### Open-source and licensing
+### Open source compliance
 
-- **GPL-3.0-compatible licenses only.** Every model must be released under a license compatible with GPL-3.0 (e.g. Apache-2.0, MIT, BSD, GPL-3.0). Proprietary or non-commercial-only models are not accepted.
-- **Open weights.** Model weights must be publicly available for download without registration walls or usage restrictions.
-- **Published research.** Models should have an accompanying peer-reviewed paper or public technical report describing the architecture and training methodology.
+Each model card documents the following and must meet the stated requirements:
 
-### AI ethics
+- **GPL-3.0-compatible license.** Model weights must be released under a license compatible with GPL-3.0 (e.g. Apache-2.0, MIT, BSD, GPL-3.0). Proprietary or non-commercial-only models are not accepted.
+- **[OSAID v1.0](https://opensource.org/ai/open-source-ai-definition) classification.** Open Source AI, Open Weights, or Open Model.
+- **[MOF](https://isitopen.ai/) classification.** Class I (Open Science), Class II (Open Tooling), or Class III (Open Model).
+- **Training data license.** Specific license(s) for each training dataset.
+- **Training data provenance.** Where data came from and how it was collected. Models trained on undisclosed or scraped personal data without consent are not accepted.
+- **Training code availability.** Link to public training code under an open-source license.
+- **Known limitations.** What cannot be audited or verified (e.g. non-releasable pre-training data, non-OSI training data licenses).
 
-- **Training data transparency.** We prefer models trained on publicly documented datasets with clear provenance. Models trained on undisclosed or scraped personal data without consent are not accepted.
+### Published research
+
+- **Peer-reviewed or public report.** Models should have an accompanying peer-reviewed paper or public technical report describing the architecture and training methodology.
+
+### Responsible use
+
 - **Privacy by design.** All inference runs locally on the user's machine. No data is sent to external services. No telemetry, no cloud dependencies.
 - **Purpose-limited scope.** Models are selected for photo editing tasks: denoising, masking, depth estimation, and object removal (inpainting), etc. We do not include models designed for generating, manipulating, or synthesizing human likenesses.
 - **Reproducibility.** Conversion scripts, model configurations, and source references are fully documented so that any user can verify and rebuild the ONNX models from the original checkpoints.

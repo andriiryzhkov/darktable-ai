@@ -47,10 +47,18 @@ projections (conv_s0, conv_s1).
 - Output masks are always 1024x1024 (resize to original image size at runtime).
 - `low_res_masks` (256x256) can be fed back as `mask_input` for iterative refinement.
 
-## Selection criteria compliance
+## Selection Criteria
 
-- **License:** Apache-2.0 -- permissive, GPL-3.0 compatible.
-- **Open weights:** Publicly available from Meta, no registration required.
-- **Published research:** Published with technical report (arXiv 2024).
-- **Training data:** SA-V video dataset (50.9K videos, 642.6K masklets) + SA-1B (1 billion masks). Training data is publicly documented by Meta.
-- **Purpose:** Object segmentation for masking - photo editing task. Runs locally, no external services.
+| Property                 | Value                                                                                            |
+|--------------------------|--------------------------------------------------------------------------------------------------|
+| Model license            | Apache-2.0                                                                                       |
+| OSAID v1.0               | Open Weights                                                                                     |
+| MOF                      | Class II (Open Tooling)                                                                          |
+| Training data license    | SA-V: CC BY 4.0; SA-1B: custom Meta research-only license                                       |
+| Training data provenance | [SA-V](https://ai.meta.com/datasets/segment-anything-video/) (50.9K videos) + [SA-1B](https://ai.meta.com/datasets/segment-anything/) (11M stock images) |
+| Training code            | [Apache-2.0](https://github.com/facebookresearch/sam2)                                          |
+| Known limitations        | SA-1B: unnamed stock provider, research-only license (not OSI), prohibits commercial use/redistribution, requires data destruction within 3 months |
+| Published research       | [SAM 2: Segment Anything in Images and Videos](https://arxiv.org/abs/2408.00714) (2024)          |
+| Inference                | Local only, no cloud dependencies                                                                |
+| Scope                    | Object segmentation                                                                              |
+| Reproducibility          | Full pipeline (setup, convert, clean, demo)                                                      |
