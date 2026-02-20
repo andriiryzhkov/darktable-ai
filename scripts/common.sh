@@ -13,10 +13,15 @@
 #   CHECKPOINT_URLS[]     - array of download URLs (supports direct URLs,
 #                           Google Drive URLs, or gdrive://FILE_ID)
 #   CHECKPOINT_PATHS[]    - array of paths relative to ROOT_DIR
+#   MODEL_TYPE            - "single" (default) or "split" (encoder + decoder)
 #
 # Optional variables for pre-converted ONNX models (no conversion needed):
 #   ONNX_URLS[]           - array of pre-converted ONNX download URLs
 #   ONNX_PATHS[]          - array of output paths relative to ROOT_DIR
+#
+# Optional functions from model.conf:
+#   run_convert()         - conversion command (omit for pre-converted models)
+#   demo_args()           - per-image demo arguments (e.g. point prompts)
 
 ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
@@ -123,10 +128,45 @@ download_onnx_models() {
 
 activate_venv() {
     if [ ! -d "$VENV_DIR" ]; then
-        echo "Error: Virtual environment not found. Run ./setup_env.sh first."
+        echo "Error: Virtual environment not found. Run 'run.sh $MODEL_ID setup' first."
         exit 1
     fi
     source "$VENV_DIR/bin/activate"
+}
+
+# Auto-detect setup steps from model.conf variables.
+setup_env() {
+    setup_venv
+    if [ -n "$REPO_URL" ]; then
+        clone_and_install_repo
+    fi
+    if [ ${#CHECKPOINT_URLS[@]} -gt 0 ]; then
+        download_checkpoints
+    fi
+    if [ ${#ONNX_URLS[@]} -gt 0 ]; then
+        download_onnx_models
+    fi
+    echo "Success! Environment ready at $VENV_DIR"
+}
+
+# Run model conversion (calls run_convert from model.conf if defined).
+run_conversion() {
+    if declare -f run_convert > /dev/null; then
+        activate_venv
+        run_convert
+    else
+        echo "Pre-converted ONNX model — no conversion needed."
+    fi
+}
+
+# Run demo on sample images with correct model args.
+run_demo_pipeline() {
+    local model_dir="$ROOT_DIR/models/$MODEL_ID"
+    if [ "${MODEL_TYPE:-single}" = "split" ]; then
+        run_demo --encoder "$model_dir/encoder.onnx" --decoder "$model_dir/decoder.onnx"
+    else
+        run_demo --model "$model_dir/model.onnx"
+    fi
 }
 
 run_demo() {
