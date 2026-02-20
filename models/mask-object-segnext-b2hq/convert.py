@@ -113,6 +113,7 @@ class SegNextDecoderOnnx(nn.Module):
         self.embed_dim = model.backbone.embed_dim
         self.norm_radius = float(model.dist_maps.norm_radius)
         self.spatial_scale = float(model.dist_maps.spatial_scale)
+        self.use_disks = model.dist_maps.use_disks
 
         # Pre-compute coordinate grids as constant buffers
         H = W = self.target_length
@@ -158,22 +159,26 @@ class SegNextDecoderOnnx(nn.Module):
         """ONNX-friendly distance map computation.
 
         Reimplements DistMaps.get_coord_features() without in-place ops
-        or boolean indexing.
+        or boolean indexing.  Supports both disk mode (binary 0/1 maps)
+        and continuous mode (tanh-normalized distance).
 
         Args:
             point_coords: [B, N, 2] — (x, y) = (col, row) at 1024 scale
             point_labels: [B, N] — 1=foreground, 0=background, -1=padding
         Returns:
-            [B, 2, H, W] — (positive_dist, negative_dist) in [0, 1]
+            [B, 2, H, W] — (positive_dist, negative_dist)
         """
         # Map (x, y) → (row, col) for grid computation
         pr = point_coords[:, :, 1:2].unsqueeze(-1)  # row [B, N, 1, 1]
         pc = point_coords[:, :, 0:1].unsqueeze(-1)  # col [B, N, 1, 1]
 
-        # Normalized squared distance from each point to every pixel
-        r = self.norm_radius * self.spatial_scale
-        dr = (self.grid_r - pr) / r
-        dc = (self.grid_c - pc) / r
+        # Squared Euclidean distance from each point to every pixel
+        dr = self.grid_r - pr
+        dc = self.grid_c - pc
+        if not self.use_disks:
+            r = self.norm_radius * self.spatial_scale
+            dr = dr / r
+            dc = dc / r
         dist_sq = dr * dr + dc * dc  # [B, N, H, W]
 
         # Separate positive (label=1) and negative (label=0) via masking;
@@ -189,7 +194,15 @@ class SegNextDecoderOnnx(nn.Module):
         neg_dist = neg_dist.min(dim=1, keepdim=True)[0]
 
         result = torch.cat([pos_dist, neg_dist], dim=1)  # [B, 2, H, W]
-        result = torch.tanh(2 * torch.sqrt(result))
+
+        if self.use_disks:
+            # Binary disk: 1.0 within radius, 0.0 outside
+            radius_sq = (self.norm_radius * self.spatial_scale) ** 2
+            result = (result <= radius_sq).float()
+        else:
+            # Continuous: tanh-normalized distance
+            result = torch.tanh(2 * torch.sqrt(result))
+
         return result
 
 
