@@ -39,13 +39,13 @@ jobs:
           python-version: "3.11"
 
       - name: Setup environment
-        run: bash models/run.sh ${{ matrix.model }} setup
+        run: bash run.sh ${{ matrix.model }} setup
 
       - name: Run conversion
-        run: bash models/run.sh ${{ matrix.model }} convert
+        run: bash run.sh ${{ matrix.model }} convert
 
       - name: Validate output
-        run: bash models/run.sh ${{ matrix.model }} validate
+        run: bash run.sh ${{ matrix.model }} validate
 
       - name: Package model
         run: |

@@ -1,9 +1,10 @@
 #!/bin/bash
 set -e
 
-SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+MODELS_DIR="$ROOT_DIR/models"
 
-for dir in "$SCRIPTS_DIR"/*/; do
+for dir in "$MODELS_DIR"/*/; do
     if [ -f "$dir/model.conf" ]; then
         model_id="$(basename "$dir")"
         if [ -f "$dir/.skip" ]; then
@@ -13,7 +14,7 @@ for dir in "$SCRIPTS_DIR"/*/; do
         echo "========================================"
         echo "  $model_id"
         echo "========================================"
-        bash "$SCRIPTS_DIR/run.sh" "$model_id"
+        bash "$ROOT_DIR/run.sh" "$model_id"
         echo ""
     fi
 done

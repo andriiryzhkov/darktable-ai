@@ -1,7 +1,8 @@
 #!/bin/bash
 set -e
 
-MODELS_DIR="$(cd "$(dirname "$0")" && pwd)"
+ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
+MODELS_DIR="$ROOT_DIR/models"
 
 if [ -z "$1" ]; then
     echo "Usage: $0 <model_id> [setup|convert|validate|demo|clean]"

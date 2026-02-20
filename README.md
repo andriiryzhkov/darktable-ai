@@ -21,13 +21,13 @@ ONNX models and conversion scripts for [darktable](https://www.darktable.org/) -
 ## Repository structure
 
 ```
+run.sh                Run pipeline for a model (supports subcommands)
+run_all.sh            Run full pipeline for all models
 images/               Sample images for demos
 output/               Build output: ONNX models + generated config.json (gitignored)
 temp/                 Downloaded checkpoints before conversion (gitignored)
 models/
   common.sh           Shared shell functions (setup, convert, validate, demo, clean)
-  run.sh              Run pipeline for a model (supports subcommands)
-  run_all.sh          Run full pipeline for all models
   validate.py         Validate ONNX output (load models, check config, print I/O shapes)
   <model>/
     model.conf        Model metadata, configuration, conversion, and demo functions
@@ -43,23 +43,23 @@ models/
 Run the full pipeline (setup, convert, validate, demo, clean) for a single model:
 
 ```bash
-./models/run.sh <model_id>
+./run.sh <model_id>
 ```
 
 Run the pipeline for all models:
 
 ```bash
-./models/run_all.sh
+./run_all.sh
 ```
 
 Or run each step individually:
 
 ```bash
-./models/run.sh <model_id> setup     # Create venv, clone repo, download checkpoint
-./models/run.sh <model_id> convert   # Convert to ONNX + generate config.json
-./models/run.sh <model_id> validate  # Load ONNX, verify config, print I/O shapes
-./models/run.sh <model_id> demo      # Run demo on sample images
-./models/run.sh <model_id> clean     # Remove venv and cloned repo
+./run.sh <model_id> setup     # Create venv, clone repo, download checkpoint
+./run.sh <model_id> convert   # Convert to ONNX + generate config.json
+./run.sh <model_id> validate  # Load ONNX, verify config, print I/O shapes
+./run.sh <model_id> demo      # Run demo on sample images
+./run.sh <model_id> clean     # Remove venv and cloned repo
 ```
 
 ## Demos
@@ -102,4 +102,4 @@ Each model card documents the following and must meet the stated requirements:
 2. Create `models/<model>/requirements.txt` with Python dependencies (must include `onnxruntime`)
 3. Create `models/<model>/convert.py` with model-specific conversion logic
 4. Create `models/<model>/demo.py` with inference script
-5. Run `./models/run.sh <model> convert` to build ONNX output and generate `config.json`
+5. Run `./run.sh <model> convert` to build ONNX output and generate `config.json`
