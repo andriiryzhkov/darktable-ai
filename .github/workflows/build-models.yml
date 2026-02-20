@@ -44,6 +44,9 @@ jobs:
       - name: Run conversion
         run: bash models/run.sh ${{ matrix.model }} convert
 
+      - name: Validate output
+        run: bash models/run.sh ${{ matrix.model }} validate
+
       - name: Package model
         run: |
           cd output

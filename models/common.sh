@@ -24,6 +24,7 @@
 #   demo_args()           - per-image demo arguments (e.g. point prompts)
 
 ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+MODELS_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 setup_venv() {
     if [ -d "$VENV_DIR" ]; then
@@ -177,6 +178,15 @@ run_conversion() {
         echo "Pre-converted ONNX model — no conversion needed."
     fi
     generate_config
+}
+
+# Validate ONNX output: check files load and print I/O shapes.
+run_validation() {
+    activate_venv
+    local model_dir="$ROOT_DIR/output/$MODEL_ID"
+    python3 "$MODELS_DIR/validate.py" \
+        --model-dir "$model_dir" \
+        --model-type "${MODEL_TYPE:-single}"
 }
 
 # Run demo on sample images with correct model args.

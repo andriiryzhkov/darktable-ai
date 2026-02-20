@@ -4,7 +4,7 @@ set -e
 MODELS_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 if [ -z "$1" ]; then
-    echo "Usage: $0 <model_id> [setup|convert|demo|clean]"
+    echo "Usage: $0 <model_id> [setup|convert|validate|demo|clean]"
     echo ""
     echo "Available models:"
     for dir in "$MODELS_DIR"/*/; do
@@ -39,6 +39,9 @@ case "$ACTION" in
     convert)
         run_conversion
         ;;
+    validate)
+        run_validation
+        ;;
     demo)
         run_demo_pipeline
         ;;
@@ -54,6 +57,10 @@ case "$ACTION" in
         run_conversion
 
         echo ""
+        echo "=== Validate ==="
+        run_validation
+
+        echo ""
         echo "=== Demo ==="
         run_demo_pipeline
 
@@ -62,7 +69,7 @@ case "$ACTION" in
         clean_env
         ;;
     *)
-        echo "Error: Unknown action '$ACTION'. Use: setup, convert, demo, clean"
+        echo "Error: Unknown action '$ACTION'. Use: setup, convert, validate, demo, clean"
         exit 1
         ;;
 esac
