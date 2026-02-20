@@ -1,9 +1,0 @@
-{
-    "id": "mask-object-samhq-light",
-    "name": "mask sam-hq light",
-    "description": "Light HQ Segment Anything Model for masking",
-    "task": "mask",
-    "backend": "onnx",
-    "version": "1.0",
-    "tiling": false
-}

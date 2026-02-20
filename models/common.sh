@@ -149,6 +149,25 @@ setup_env() {
     echo "Success! Environment ready at $VENV_DIR"
 }
 
+# Generate config.json in the output directory from model.conf variables.
+generate_config() {
+    local output_dir="$ROOT_DIR/output/$MODEL_ID"
+    local config_file="$output_dir/config.json"
+    mkdir -p "$output_dir"
+    cat > "$config_file" <<EOF
+{
+    "id": "$MODEL_ID",
+    "name": "$MODEL_NAME",
+    "description": "$MODEL_DESCRIPTION",
+    "task": "$MODEL_TASK",
+    "backend": "onnx",
+    "version": "1.0",
+    "tiling": ${MODEL_TILING:-false}
+}
+EOF
+    echo "Generated: $config_file"
+}
+
 # Run model conversion (calls run_convert from model.conf if defined).
 run_conversion() {
     if declare -f run_convert > /dev/null; then
@@ -157,6 +176,7 @@ run_conversion() {
     else
         echo "Pre-converted ONNX model — no conversion needed."
     fi
+    generate_config
 }
 
 # Run demo on sample images with correct model args.

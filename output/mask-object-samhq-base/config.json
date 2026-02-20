@@ -1,9 +1,0 @@
-{
-    "id": "mask-object-samhq-base",
-    "name": "mask sam-hq base",
-    "description": "HQ Segment Anything Model (ViT-B) for masking",
-    "task": "mask",
-    "backend": "onnx",
-    "version": "1.0",
-    "tiling": false
-}

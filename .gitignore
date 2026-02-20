@@ -231,5 +231,8 @@ macOS
 *.tar.bz2
 *.tar.xz
 
+# AI model build output (ONNX models + generated config.json)
+output/
+
 # AI model temp files (downloaded checkpoints before conversion)
 temp/

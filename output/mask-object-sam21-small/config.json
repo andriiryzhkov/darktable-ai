@@ -1,9 +1,0 @@
-{
-    "id": "mask-object-sam21-small",
-    "name": "mask sam2.1 hiera small",
-    "description": "Segment Anything 2.1 (Hiera Small) for masking",
-    "task": "mask",
-    "backend": "onnx",
-    "version": "1.0",
-    "tiling": false
-}

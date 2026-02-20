@@ -1,9 +1,0 @@
-{
-    "id": "denoise-nind",
-    "name": "denoise nind",
-    "description": "UNet denoiser trained on NIND dataset",
-    "task": "denoise",
-    "backend": "onnx",
-    "version": "1.0",
-    "tiling": true
-}

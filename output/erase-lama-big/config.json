@@ -1,9 +1,0 @@
-{
-    "id": "erase-lama-big",
-    "name": "LaMa Big",
-    "description": "Large Mask Inpainting for object erasure",
-    "task": "erase",
-    "backend": "onnx",
-    "version": "1.0",
-    "tiling": false
-}
