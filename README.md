@@ -6,37 +6,33 @@ ONNX models and conversion scripts for [darktable](https://www.darktable.org/) -
 
 | Model                                                                            | Task    | Description                                   |
 |----------------------------------------------------------------------------------|---------|-----------------------------------------------|
-| [`denoise-nafnet`](scripts/denoise-nafnet/README.md)                             | denoise | NAFNet denoiser trained on SIDD dataset       |
-| [`denoise-nind`](scripts/denoise-nind/README.md)                                 | denoise | UNet denoiser trained on NIND dataset         |
-| [`mask-object-samhq-light`](scripts/mask-object-samhq-light/README.md)           | mask    | HQ-SAM Light (ViT-Tiny) for masking           |
-| [`mask-object-samhq-base`](scripts/mask-object-samhq-base/README.md)             | mask    | HQ-SAM (ViT-B) for masking                    |
-| [`mask-object-sam21-tiny`](scripts/mask-object-sam21-tiny/README.md)             | mask    | SAM 2.1 (Hiera Tiny) for masking              |
-| [`mask-object-sam21-small`](scripts/mask-object-sam21-small/README.md)           | mask    | SAM 2.1 (Hiera Small) for masking             |
-| [`mask-object-sam21-small-onnx`](scripts/mask-object-sam21-small-onnx/README.md) | mask    | SAM 2.1 (Hiera Small) pre-converted ONNX      |
-| [`mask-object-sam21hq-large`](scripts/mask-object-sam21hq-large/README.md)       | mask    | HQ-SAM 2.1 (Hiera Large) for masking          |
-| [`mask-depth-da2-small`](scripts/mask-depth-da2-small/README.md)                 | depth    | Depth Anything V2 Small for depth masking     |
-| [`mask-depth-da3mono-large`](scripts/mask-depth-da3mono-large/README.md)         | depth    | Depth Anything 3 Mono-Large for depth masking |
-| [`erase-lama-big`](scripts/erase-lama-big/README.md)                             | erase   | LaMa Big for object erasure (inpainting)      |
+| [`denoise-nafnet`](models/denoise-nafnet/README.md)                             | denoise | NAFNet denoiser trained on SIDD dataset       |
+| [`denoise-nind`](models/denoise-nind/README.md)                                 | denoise | UNet denoiser trained on NIND dataset         |
+| [`mask-object-samhq-light`](models/mask-object-samhq-light/README.md)           | mask    | HQ-SAM Light (ViT-Tiny) for masking           |
+| [`mask-object-samhq-base`](models/mask-object-samhq-base/README.md)             | mask    | HQ-SAM (ViT-B) for masking                    |
+| [`mask-object-sam21-tiny`](models/mask-object-sam21-tiny/README.md)             | mask    | SAM 2.1 (Hiera Tiny) for masking              |
+| [`mask-object-sam21-small`](models/mask-object-sam21-small/README.md)           | mask    | SAM 2.1 (Hiera Small) for masking             |
+| [`mask-object-sam21-small-onnx`](models/mask-object-sam21-small-onnx/README.md) | mask    | SAM 2.1 (Hiera Small) pre-converted ONNX      |
+| [`mask-object-sam21hq-large`](models/mask-object-sam21hq-large/README.md)       | mask    | HQ-SAM 2.1 (Hiera Large) for masking          |
+| [`mask-depth-da2-small`](models/mask-depth-da2-small/README.md)                 | depth    | Depth Anything V2 Small for depth masking     |
+| [`mask-depth-da3mono-large`](models/mask-depth-da3mono-large/README.md)         | depth    | Depth Anything 3 Mono-Large for depth masking |
+| [`erase-lama-big`](models/erase-lama-big/README.md)                             | erase   | LaMa Big for object erasure (inpainting)      |
 
 ## Repository structure
 
 ```
 images/               Sample images for demos
-models/               ONNX models + config.json per model
+output/               ONNX models + config.json per model
 temp/                 Downloaded checkpoints (before conversion, gitignored)
-scripts/
+models/
   common.sh           Shared shell functions (setup, convert, clean, demo)
-  run.sh              Run full pipeline (setup -> convert -> clean) for a model
+  run.sh              Run pipeline for a model (supports subcommands)
   run_all.sh          Run full pipeline for all models
   <model>/
-    model.conf        Model configuration (repo URL, checkpoints, etc.)
+    model.conf        Model configuration, conversion, and demo functions
     requirements.txt  Python dependencies
-    setup_env.sh      Create venv, clone repo, download checkpoints
-    run_conversion.sh Convert PyTorch checkpoint to ONNX
-    clean_env.sh      Remove venv and cloned repo
-    convert_*.py      Model-specific conversion script
+    convert.py        Model-specific conversion script
     demo.py           Demo inference script
-    run_demo.sh       Run demo on all sample images
     README.md         Model documentation and ONNX tensor specs
     .skip             If present, skip this model in run_all.sh and CI
 ```
@@ -46,40 +42,31 @@ scripts/
 Run the full pipeline (setup, convert, clean) for a single model:
 
 ```bash
-./scripts/run.sh <model_id>
+./models/run.sh <model_id>
 ```
 
 Run the pipeline for all models:
 
 ```bash
-./scripts/run_all.sh
+./models/run_all.sh
 ```
 
 Or run each step individually:
 
 ```bash
-./scripts/<model>/setup_env.sh        # Create venv, clone repo, download checkpoint
-./scripts/<model>/run_conversion.sh   # Convert to ONNX
-./scripts/<model>/run_demo.sh.        # Run a demo
-./scripts/<model>/clean_env.sh        # Remove venv and cloned repo
+./models/run.sh <model_id> setup     # Create venv, clone repo, download checkpoint
+./models/run.sh <model_id> convert   # Convert to ONNX
+./models/run.sh <model_id> demo      # Run demo on sample images
+./models/run.sh <model_id> clean     # Remove venv and cloned repo
 ```
 
 ## Demos
 
-Each model includes a demo script that runs inference on the sample images in `images/`.
+Each model includes a `demo.py` script that runs inference on the sample images
+in `images/`. Models that require per-image input (e.g. point prompts for object
+segmentation) define a `demo_args()` function in their `model.conf`.
 
-Run a demo for a single model (requires the venv and ONNX model to be present):
-
-```bash
-./scripts/<model>/run_demo.sh
-```
-
-Demo scripts use the shared `run_demo` function from `common.sh`, which iterates
-over all sample images automatically. Models that require per-image input (e.g.
-point prompts for object segmentation) define a `demo_args()` function in their
-`run_demo.sh`.
-
-Output images are saved to `scripts/<model>/output/`.
+Output images are saved to `models/<model>/output/`.
 
 ## Model selection criteria
 
@@ -109,8 +96,8 @@ Each model card documents the following and must meet the stated requirements:
 
 ## Adding a new model
 
-1. Create `scripts/<model>/model.conf` with repo URL, install command, and checkpoint URLs
-2. Create `scripts/<model>/requirements.txt` with Python dependencies
-3. Create `scripts/<model>/convert_*.py` with model-specific conversion logic
-4. Copy `setup_env.sh`, `run_conversion.sh`, `clean_env.sh` from an existing model (they are identical thin wrappers around `scripts/common.sh`)
-5. Create `models/<model>/config.json` with model metadata
+1. Create `models/<model>/model.conf` with repo URL, checkpoints, `run_convert()`, and optional `demo_args()`
+2. Create `models/<model>/requirements.txt` with Python dependencies
+3. Create `models/<model>/convert.py` with model-specific conversion logic
+4. Create `models/<model>/demo.py` with inference script
+5. Create `output/<model>/config.json` with model metadata

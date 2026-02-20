@@ -18,7 +18,7 @@ jobs:
       - id: find
         name: Discover model scripts
         run: |
-          models=$(ls -d scripts/*/model.conf 2>/dev/null \
+          models=$(ls -d models/*/model.conf 2>/dev/null \
             | xargs -I{} dirname {} \
             | while read d; do [ ! -f "$d/.skip" ] && basename "$d"; done \
             | jq -R -s -c 'split("\n") | map(select(length > 0))')
@@ -39,14 +39,14 @@ jobs:
           python-version: "3.11"
 
       - name: Setup environment
-        run: bash scripts/run.sh ${{ matrix.model }} setup
+        run: bash models/run.sh ${{ matrix.model }} setup
 
       - name: Run conversion
-        run: bash scripts/run.sh ${{ matrix.model }} convert
+        run: bash models/run.sh ${{ matrix.model }} convert
 
       - name: Package model
         run: |
-          cd models
+          cd output
           zip -r ${{ matrix.model }}.zip ${{ matrix.model }}/
           mv ${{ matrix.model }}.zip ..
 
