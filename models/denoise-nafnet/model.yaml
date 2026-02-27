@@ -1,0 +1,24 @@
+id: denoise-nafnet
+name: "denoise nafnet small"
+description: "NAFNet denoiser trained on SIDD dataset"
+task: denoise
+tiling: true
+type: single
+dep_group: nafnet
+
+repo:
+  submodule: vendor/NAFNet
+  setup: "python setup.py develop --no_cuda_ext"
+
+checkpoints:
+  - url: "https://drive.google.com/file/d/1lsByk21Xw-6aW7epCwOQxvm6HYCQZPHZ/view?usp=sharing"
+    path: "temp/denoise-nafnet/NAFNet-SIDD-width32.pth"
+
+convert:
+  - script: convert.py
+    args:
+      config: "{repo}/options/test/SIDD/NAFNet-width32.yml"
+      checkpoint: "{temp}/NAFNet-SIDD-width32.pth"
+      output: "{output}/model.onnx"
+      opset: 17
+      fp16: true

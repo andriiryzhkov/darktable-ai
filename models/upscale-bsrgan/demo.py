@@ -75,29 +75,33 @@ def run_inference(model_path, input_path, output_path, max_size=512):
     print(f"Total execution time: {end_time - start_time:.4f} seconds")
 
 
+def demo(model_dir, image, output, **kwargs):
+    """Entry point for programmatic demo. Runs all *.onnx in model_dir."""
+    import glob
+
+    max_size = kwargs.get("max_size", 512)
+    models = sorted(glob.glob(os.path.join(model_dir, "*.onnx")))
+    if not models:
+        raise FileNotFoundError(f"No ONNX models found in {model_dir}")
+    base, ext = os.path.splitext(output)
+    for model_path in models:
+        model_name = os.path.splitext(os.path.basename(model_path))[0]
+        output_path = f"{base}_{model_name}{ext}"
+        print(f"\n--- {model_name} ---")
+        run_inference(model_path, image, output_path, max_size=max_size)
+
+
 def main():
     parser = argparse.ArgumentParser(description='Run BSRGAN ONNX Demo')
-    parser.add_argument('--model', type=str, help='Path to ONNX model')
-    parser.add_argument('--model-dir', type=str, help='Path to model directory (runs all *.onnx)')
-    parser.add_argument('--image', type=str, required=True, help='Path to input image')
-    parser.add_argument('--output', type=str, required=True, help='Path to output image')
-    parser.add_argument('--max-size', type=int, default=512,
-                        help='Downscale longest edge to this (0 = full resolution)')
-
+    parser.add_argument('--model', type=str)
+    parser.add_argument('--model-dir', type=str)
+    parser.add_argument('--image', type=str, required=True)
+    parser.add_argument('--output', type=str, required=True)
+    parser.add_argument('--max-size', type=int, default=512)
     args = parser.parse_args()
 
     if args.model_dir:
-        import glob
-        models = sorted(glob.glob(os.path.join(args.model_dir, "*.onnx")))
-        if not models:
-            print(f"No ONNX models found in {args.model_dir}")
-            sys.exit(1)
-        base, ext = os.path.splitext(args.output)
-        for model_path in models:
-            model_name = os.path.splitext(os.path.basename(model_path))[0]
-            output_path = f"{base}_{model_name}{ext}"
-            print(f"\n--- {model_name} ---")
-            run_inference(model_path, args.image, output_path, max_size=args.max_size)
+        demo(args.model_dir, args.image, args.output, max_size=args.max_size)
     elif args.model:
         run_inference(args.model, args.image, args.output, max_size=args.max_size)
     else:

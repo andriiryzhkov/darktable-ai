@@ -124,42 +124,30 @@ def export_to_onnx(model, output_path, input_height=256, input_width=256,
         print(f"FP16 model saved to {output_path}")
 
 
+def convert(config, checkpoint, output="nafnet.onnx", height=256, width=256,
+            opset=11, fp16=False):
+    """Entry point for programmatic conversion."""
+    print("Loading NAFNet model...")
+    model = load_nafnet_model(config, checkpoint)
+
+    print("Exporting to ONNX...")
+    export_to_onnx(model, output, input_height=height, input_width=width,
+                   opset_version=opset, fp16=fp16)
+
+
 def main():
     parser = argparse.ArgumentParser(description='Export NAFNet to ONNX')
-    parser.add_argument('--config', type=str, required=True,
-                        help='Path to config YAML file')
-    parser.add_argument('--checkpoint', type=str, required=True,
-                        help='Path to model checkpoint (.pth)')
-    parser.add_argument('--output', type=str, default='nafnet.onnx',
-                        help='Output ONNX file path')
-    parser.add_argument('--height', type=int, default=256,
-                        help='Input height for tracing')
-    parser.add_argument('--width', type=int, default=256,
-                        help='Input width for tracing')
-    parser.add_argument('--static', action='store_true',
-                        help='Use static input shapes')
-    parser.add_argument('--opset', type=int, default=11,
-                        help='ONNX opset version')
-    parser.add_argument('--fp16', action='store_true',
-                        help='Export in half precision (FP16)')
-    
+    parser.add_argument('--config', type=str, required=True)
+    parser.add_argument('--checkpoint', type=str, required=True)
+    parser.add_argument('--output', type=str, default='nafnet.onnx')
+    parser.add_argument('--height', type=int, default=256)
+    parser.add_argument('--width', type=int, default=256)
+    parser.add_argument('--opset', type=int, default=11)
+    parser.add_argument('--fp16', action='store_true')
     args = parser.parse_args()
-    
-    # Load model
-    print("Loading NAFNet model...")
-    model = load_nafnet_model(args.config, args.checkpoint)
-    
-    # Export to ONNX
-    print("Exporting to ONNX...")
-    export_to_onnx(
-        model,
-        args.output,
-        input_height=args.height,
-        input_width=args.width,
-        dynamic_shapes=not args.static,
-        opset_version=args.opset,
-        fp16=args.fp16
-    )
+
+    convert(args.config, args.checkpoint, args.output,
+            args.height, args.width, args.opset, args.fp16)
 
 
 if __name__ == '__main__':

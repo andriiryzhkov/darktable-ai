@@ -14,14 +14,15 @@ jobs:
       models: ${{ steps.find.outputs.models }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - uses: astral-sh/setup-uv@v5
 
       - id: find
-        name: Discover model scripts
+        name: Discover models
         run: |
-          models=$(ls -d models/*/model.conf 2>/dev/null \
-            | xargs -I{} dirname {} \
-            | while read d; do [ ! -f "$d/.skip" ] && basename "$d"; done \
-            | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          models=$(uv run dtai list --json-output)
           echo "models=$models" >> "$GITHUB_OUTPUT"
 
   build:
@@ -33,22 +34,25 @@ jobs:
         model: ${{ fromJson(needs.discover.outputs.models) }}
     steps:
       - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          submodules: true
 
-      - name: Setup environment
-        run: bash run.sh ${{ matrix.model }} setup
+      - uses: astral-sh/setup-uv@v5
 
-      - name: Run conversion
-        run: bash run.sh ${{ matrix.model }} convert
+      - name: Install dependencies
+        run: uv sync --group all-models
+
+      - name: Download checkpoints
+        run: uv run dtai setup ${{ matrix.model }}
+
+      - name: Convert to ONNX
+        run: uv run dtai convert ${{ matrix.model }}
 
       - name: Validate output
-        run: bash run.sh ${{ matrix.model }} validate
+        run: uv run dtai validate ${{ matrix.model }}
 
       - name: Package model
-        run: bash run.sh ${{ matrix.model }} package
+        run: uv run dtai package ${{ matrix.model }}
 
       - uses: actions/upload-artifact@v4
         with:

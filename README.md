@@ -1,66 +1,86 @@
 # Darktable AI Models
 
-ONNX models and conversion scripts for [darktable](https://www.darktable.org/) - an open-source photography workflow application and raw developer ([GitHub](https://github.com/darktable-org/darktable)).
+AI model conversion and packaging pipeline for [darktable](https://www.darktable.org/) – an open-source photography workflow application and raw developer ([GitHub](https://github.com/darktable-org/darktable)).
+
+Currently targets the ONNX backend. The pipeline is designed to support additional backends as darktable gains support for other AI runtimes.
 
 ## Models
 
-| Model                                                                           | Task    | Description                                   |
-|---------------------------------------------------------------------------------|---------|-----------------------------------------------|
-| [`denoise-nafnet`](models/denoise-nafnet/README.md)                             | denoise | NAFNet denoiser trained on SIDD dataset       |
-| [`denoise-nind`](models/denoise-nind/README.md)                                 | denoise | UNet denoiser trained on NIND dataset         |
-| [`mask-object-segnext-b2hq`](models/mask-object-segnext-b2hq/README.md)         | mask    | SegNext ViT-B SAx2 HQ for masking             |
-| [`upscale-bsrgan`](models/upscale-bsrgan/README.md)                            | upscale | BSRGAN 2x and 4x blind super-resolution      |
+| Model                                                                           | Task        | Description                                   |
+|---------------------------------------------------------------------------------|-------------|-----------------------------------------------|
+| [`denoise-nafnet`](models/denoise-nafnet/README.md)                             | denoise     | NAFNet denoiser trained on SIDD dataset       |
+| [`denoise-nind`](models/denoise-nind/README.md)                                 | denoise     | UNet denoiser trained on NIND dataset         |
+| [`mask-object-segnext-b2hq`](models/mask-object-segnext-b2hq/README.md)         | mask-object | SegNext ViT-B SAx2 HQ for masking             |
+| [`upscale-bsrgan`](models/upscale-bsrgan/README.md)                            | upscale     | BSRGAN 2x and 4x blind super-resolution      |
 
 ## Repository structure
 
 ```
-run.sh                Run pipeline for a model (supports subcommands)
-run_all.sh            Run full pipeline for all models
-images/               Sample images for demos
-output/               Build output: ONNX models + generated config.json (gitignored)
-temp/                 Downloaded checkpoints before conversion (gitignored)
+pyproject.toml        Project configuration, dependency groups, CLI entry point
+darktable_ai/         Python package (CLI + pipeline orchestration)
+vendor/               Git submodules (NAFNet, nind-denoise, SegNext)
+samples/<task>/        Sample images organized by task
+output/               Build output: ONNX models + config.json (gitignored)
+temp/                 Downloaded checkpoints (gitignored)
 models/
-  common.sh           Shared shell functions (setup, convert, validate, demo, clean)
-  validate.py         Validate ONNX output (load models, check config, print I/O shapes)
   <model>/
-    model.conf        Model metadata, configuration, conversion, and demo functions
-    requirements.txt  Python dependencies
+    model.yaml        Model metadata, checkpoints, conversion steps
     convert.py        Model-specific conversion script
     demo.py           Demo inference script
-    README.md         Model documentation and ONNX tensor specs
-    .skip             If present, skip this model in run_all.sh and CI
+    .skip             If present, skip this model in batch operations and CI
+```
+
+## Requirements
+
+Requires [uv](https://docs.astral.sh/uv/) and Python 3.11–3.12.
+
+Dependencies are managed through [dependency groups](https://docs.astral.sh/uv/concepts/dependency-groups/) in `pyproject.toml`. The base package only needs `click` and `pyyaml`. ML dependencies are split into groups — one per model plus a shared `core` group — so you only install what you need. Use `uv sync --group <name>` to install a specific group, or `--group all-models` for everything.
+
+## Setup
+
+```bash
+git clone --recurse-submodules https://github.com/<org>/darktable-ai.git
+cd darktable-ai
+
+# Install CLI + core ML dependencies
+uv sync --group core
+
+# Or install deps for a specific model
+uv sync --group nind
+
+# Or install everything
+uv sync --group all-models
 ```
 
 ## Usage
 
-Run the full pipeline (setup, convert, validate, demo, clean) for a single model:
-
 ```bash
-./run.sh <model_id>
-```
+# List available models
+uv run dtai list
 
-Run the pipeline for all models:
+# Run full pipeline for a single model
+uv run dtai run denoise-nind
 
-```bash
-./run_all.sh
-```
+# Run full pipeline for all models
+uv run dtai run
 
-Or run each step individually:
+# Run individual steps
+uv run dtai setup denoise-nind       # Download checkpoints
+uv run dtai convert denoise-nind     # Convert to ONNX + generate config.json
+uv run dtai validate denoise-nind    # Validate ONNX output
+uv run dtai package denoise-nind     # Create .dtmodel archive
+uv run dtai demo denoise-nind        # Run demo on sample images
 
-```bash
-./run.sh <model_id> setup     # Create venv, clone repo, download checkpoint
-./run.sh <model_id> convert   # Convert to ONNX + generate config.json
-./run.sh <model_id> validate  # Load ONNX, verify config, print I/O shapes
-./run.sh <model_id> package   # Create .dtmodel package (zip archive)
-./run.sh <model_id> demo      # Run demo on sample images
-./run.sh <model_id> clean     # Remove venv and cloned repo
+# Evaluate a model
+uv sync --group eval
+uv run dtai eval mask mask-object-segnext-b2hq --limit 5
 ```
 
 ## Demos
 
-Each model includes a `demo.py` script that runs inference on the sample images
-in `images/`. Models that require per-image input (e.g. point prompts for object
-segmentation) define a `demo_args()` function in their `model.conf`.
+Each model includes a `demo.py` script that runs inference on sample images
+from `samples/<task>/`. Models that require per-image input (e.g. point prompts
+for object segmentation) define `image_args` in their `model.yaml`.
 
 Output images are saved to `models/<model>/output/`.
 
@@ -92,8 +112,100 @@ Each model card documents the following and must meet the stated requirements:
 
 ## Adding a new model
 
-1. Create `models/<model>/model.conf` with model metadata (`MODEL_ID`, `MODEL_NAME`, `MODEL_DESCRIPTION`, `MODEL_TASK`), repo/checkpoint URLs, `run_convert()`, and optional `demo_args()`
-2. Create `models/<model>/requirements.txt` with Python dependencies (must include `onnxruntime`)
-3. Create `models/<model>/convert.py` with model-specific conversion logic
-4. Create `models/<model>/demo.py` with inference script
-5. Run `./run.sh <model> convert` to build ONNX output and generate `config.json`
+1. Create `models/<model>/model.yaml` with model metadata, checkpoint URLs, and conversion steps
+2. Create `models/<model>/convert.py` with model-specific conversion logic
+3. Create `models/<model>/demo.py` with inference script
+4. Create `models/<model>/README.md` with the model card (see below)
+5. Add sample images to `samples/<task>/`
+6. If the model depends on an external repo, add it as a git submodule under `vendor/`
+7. Add a dependency group to `pyproject.toml` if the model needs extra packages
+8. Run `uv run dtai run <model>` to build and test
+
+### convert.py
+
+The conversion script must expose a `convert()` function that the pipeline calls directly. It receives keyword arguments matching the `args` dict in `model.yaml` (with template variables resolved). Keep `main()` with argparse for standalone use.
+
+```python
+def convert(checkpoint, output, opset=17, fp16=False):
+    """Entry point called by the pipeline."""
+    model = load_model(checkpoint)
+    export_to_onnx(model, output, opset_version=opset, fp16=fp16)
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--checkpoint", required=True)
+    parser.add_argument("--output", required=True)
+    parser.add_argument("--opset", type=int, default=17)
+    parser.add_argument("--fp16", action="store_true")
+    args = parser.parse_args()
+    convert(args.checkpoint, args.output, args.opset, args.fp16)
+
+if __name__ == "__main__":
+    main()
+```
+
+The corresponding `model.yaml` args use Python keyword names (not CLI flags):
+
+```yaml
+convert:
+  - script: convert.py
+    args:
+      checkpoint: "{temp}/model.pth"
+      output: "{output}/model.onnx"
+      opset: 17
+      fp16: true
+```
+
+Available template variables: `{root}`, `{model_dir}`, `{temp}`, `{output}`, `{repo}`.
+
+### demo.py
+
+The demo script must expose a `demo()` function. The first arguments depend on the model type:
+
+- **single** (`type: single`): `demo(model, image, output, **kwargs)`
+- **split** (`type: split`): `demo(encoder, decoder, image, output, **kwargs)`
+- **multi** (`type: multi`): `demo(model_dir, image, output, **kwargs)`
+
+The pipeline passes `image` and `output` paths automatically. Any per-image arguments defined in `model.yaml` under `demo.image_args` are passed as extra `**kwargs`.
+
+```python
+def demo(model, image, output, **kwargs):
+    """Entry point called by the pipeline."""
+    run_inference(model, image, output)
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model", required=True)
+    parser.add_argument("--image", required=True)
+    parser.add_argument("--output", required=True)
+    args = parser.parse_args()
+    demo(args.model, args.image, args.output)
+
+if __name__ == "__main__":
+    main()
+```
+
+### Model card (README.md)
+
+Each model directory must include a `README.md` documenting:
+
+- **Source** – repository URL, paper reference, license
+- **Architecture** – brief description of the model architecture
+- **ONNX Models** – input/output tensor names, shapes, data types, normalization, tiling support
+- **Selection Criteria** – a table covering all items from the [model selection criteria](#model-selection-criteria):
+
+| Property                 | Value              |
+|--------------------------|--------------------|
+| Model license            | (e.g. Apache-2.0)  |
+| OSAID v1.0               | (e.g. Open Source AI) |
+| MOF                      | (e.g. Class II)    |
+| Training data license    | ...                |
+| Training data provenance | ...                |
+| Training code            | (link)             |
+| Known limitations        | ...                |
+| Published research       | (link to paper)    |
+| Inference                | Local only, no cloud dependencies |
+| Scope                    | (e.g. Image denoising) |
+| Reproducibility          | Full pipeline      |
+
+See existing model READMEs for examples.

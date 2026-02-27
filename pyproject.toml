@@ -1,0 +1,65 @@
+[project]
+name = "darktable-ai"
+version = "0.1.0"
+description = "AI model conversion and packaging pipeline for darktable"
+requires-python = ">=3.11,<3.13"
+license = "GPL-3.0"
+readme = "README.md"
+dependencies = [
+    "click>=8.0",
+    "pyyaml>=6.0",
+]
+
+[project.scripts]
+dtai = "darktable_ai.cli:main"
+
+[dependency-groups]
+core = [
+    "torch>=2.2.0,<2.7",
+    "torchvision>=0.17.0,<0.22",
+    "numpy<2.0",
+    "onnx>=1.10.0",
+    "onnxruntime",
+    "opencv-python",
+]
+nafnet = [
+    {include-group = "core"},
+    "onnxconverter-common",
+]
+nind = [
+    {include-group = "core"},
+    "onnxconverter-common",
+    "onnxsim",
+]
+segnext = [
+    {include-group = "core"},
+    "mmcv>=2.2.0",
+    "albumentations",
+    "easydict",
+    "setuptools",
+]
+bsrgan = [
+    {include-group = "core"},
+]
+all-models = [
+    {include-group = "nafnet"},
+    {include-group = "nind"},
+    {include-group = "segnext"},
+    {include-group = "bsrgan"},
+]
+eval = [
+    "numpy<2.0",
+    "onnxruntime",
+    "Pillow",
+    "scipy",
+]
+
+[tool.uv.extra-build-dependencies]
+mmcv = ["setuptools<71"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["darktable_ai"]

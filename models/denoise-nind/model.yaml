@@ -1,0 +1,22 @@
+id: denoise-nind
+name: "denoise nind"
+description: "UNet denoiser trained on NIND dataset"
+task: denoise
+tiling: true
+type: single
+dep_group: nind
+
+repo:
+  submodule: vendor/nind-denoise
+
+checkpoints:
+  - url: "https://github.com/trougnouf/nind-denoise/raw/master/models/nind_denoise/2019-08-03T16:14_nn_train.py_--g_network_UNet_--weight_SSIM_1_--batch_size_65_--test_reserve_ursulines-red_stefantiek_ursulines-building_MuseeL-Bobo_CourtineDeVillersDebris_MuseeL-Bobo-C500D_--train_data_datasets-train-NIND_128_96_--g_model_path_models-20/generator_280.pt"
+    path: "temp/denoise-nind/generator_280.pt"
+
+convert:
+  - script: convert.py
+    args:
+      checkpoint: "{temp}/generator_280.pt"
+      output: "{output}/model.onnx"
+      opset: 17
+      fp16: true

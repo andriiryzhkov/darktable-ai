@@ -1,12 +1,12 @@
-# Demo: run the SegNext ONNX model on an image with a single point prompt
+# Demo: run the SegNext ONNX model on an image with point prompts
 # and save the source image with a red mask overlay.
 #
 # Usage:
 #   python3 models/mask-object-segnext-b2hq/demo.py \
 #       --encoder output/mask-object-segnext-b2hq/encoder.onnx \
 #       --decoder output/mask-object-segnext-b2hq/decoder.onnx \
-#       --image images/example_03.jpg \
-#       --point 0.28,0.65 \
+#       --image samples/mask-object/example_03.jpg \
+#       --point 0.33,0.52 --point 0.28,0.60 --point 0.20,0.65 \
 #       --output models/mask-object-segnext-b2hq/output/example_03.png
 
 import argparse
@@ -40,31 +40,23 @@ def make_overlay(image: Image.Image, mask: np.ndarray, alpha: float = 0.45) -> I
     return Image.fromarray(img_arr.clip(0, 255).astype(np.uint8))
 
 
-def main():
-    parser = argparse.ArgumentParser(description="SegNext ONNX segmentation demo.")
-    parser.add_argument("--encoder", type=str, required=True, help="Path to encoder.onnx")
-    parser.add_argument("--decoder", type=str, required=True, help="Path to decoder.onnx")
-    parser.add_argument("--image", type=str, required=True, help="Input image path")
-    parser.add_argument("--point", type=str, required=True,
-                        help="Foreground point as normalized x,y (e.g. 0.28,0.65)")
-    parser.add_argument("--output", type=str, required=True, help="Output PNG path")
-    args = parser.parse_args()
+def run_inference(encoder_path, decoder_path, image_path, output_path, points):
+    """Run encoder+decoder inference with point prompts."""
+    os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
 
-    os.makedirs(os.path.dirname(args.output) or ".", exist_ok=True)
-
-    px, py = [float(v) for v in args.point.split(",")]
+    parsed = [[float(v) for v in p.split(",")] for p in points]
 
     t0 = time.perf_counter()
 
-    print(f"Loading encoder: {args.encoder}")
-    enc_session = ort.InferenceSession(args.encoder, providers=["CPUExecutionProvider"])
-    print(f"Loading decoder: {args.decoder}")
-    dec_session = ort.InferenceSession(args.decoder, providers=["CPUExecutionProvider"])
+    print(f"Loading encoder: {encoder_path}")
+    enc_session = ort.InferenceSession(encoder_path, providers=["CPUExecutionProvider"])
+    print(f"Loading decoder: {decoder_path}")
+    dec_session = ort.InferenceSession(decoder_path, providers=["CPUExecutionProvider"])
     t_model = time.perf_counter()
     print(f"  Load models:   {t_model - t0:.3f}s")
 
-    print(f"Loading image: {args.image}")
-    image = Image.open(args.image)
+    print(f"Loading image: {image_path}")
+    image = Image.open(image_path)
     image = ImageOps.exif_transpose(image)
     image = image.convert("RGB")
     orig_w, orig_h = image.size
@@ -80,11 +72,13 @@ def main():
     print(f"  Encoder:       {t_enc - t_image:.3f}s")
     print(f"  Features:      {image_feats.shape}")
 
-    # Prepare point prompt (normalized coords -> 1024x1024 space)
-    point_coords = np.array([[[px * MODEL_SIZE, py * MODEL_SIZE]]], dtype=np.float32)
-    point_labels = np.array([[1.0]], dtype=np.float32)
+    # Prepare point prompts (normalized coords -> 1024x1024 space)
+    coords = [[px * MODEL_SIZE, py * MODEL_SIZE] for px, py in parsed]
+    point_coords = np.array([coords], dtype=np.float32)
+    point_labels = np.ones((1, len(coords)), dtype=np.float32)
     prev_mask = np.zeros((1, 1, MODEL_SIZE, MODEL_SIZE), dtype=np.float32)
-    print(f"  Point (1024):  ({point_coords[0,0,0]:.0f}, {point_coords[0,0,1]:.0f})")
+    for i, (px, py) in enumerate(parsed):
+        print(f"  Point {i+1} (1024): ({px * MODEL_SIZE:.0f}, {py * MODEL_SIZE:.0f})")
 
     # Run decoder
     print("Running decoder...")
@@ -109,10 +103,31 @@ def main():
 
     # Save overlay
     result = make_overlay(image, mask_binary)
-    result.save(args.output)
+    result.save(output_path)
     t_total = time.perf_counter()
-    print(f"Saved: {args.output}")
+    print(f"Saved: {output_path}")
     print(f"  Total:         {t_total - t0:.3f}s")
+
+
+def demo(encoder, decoder, image, output, **kwargs):
+    """Entry point for programmatic demo."""
+    points = kwargs.get("points", [])
+    if not points and "point" in kwargs:
+        points = [kwargs["point"]]
+    run_inference(encoder, decoder, image, output, points=points)
+
+
+def main():
+    parser = argparse.ArgumentParser(description="SegNext ONNX segmentation demo.")
+    parser.add_argument("--encoder", type=str, required=True)
+    parser.add_argument("--decoder", type=str, required=True)
+    parser.add_argument("--image", type=str, required=True)
+    parser.add_argument("--point", type=str, action="append", default=[],
+                        help="Point prompt as x,y (normalized). Repeat for multiple.")
+    parser.add_argument("--output", type=str, required=True)
+    args = parser.parse_args()
+
+    demo(args.encoder, args.decoder, args.image, args.output, points=args.point)
 
 
 if __name__ == "__main__":

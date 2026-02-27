@@ -1,10 +1,4 @@
 # Demo: run the NIND UNet denoiser ONNX model on an image.
-#
-# Usage:
-#   python3 models/denoise-nind/demo.py \
-#       --model output/denoise-nind/model.onnx \
-#       --image images/example_01.jpg \
-#       --output models/denoise-nind/output/example_01.png
 
 import argparse
 import os
@@ -15,21 +9,13 @@ import onnxruntime as ort
 from PIL import Image, ImageOps
 
 
-def main():
-    parser = argparse.ArgumentParser(description="NIND UNet ONNX denoising demo.")
-    parser.add_argument("--model", type=str, required=True, help="Path to model.onnx")
-    parser.add_argument("--image", type=str, required=True, help="Input image path")
-    parser.add_argument("--output", type=str, required=True, help="Output PNG path")
-    parser.add_argument("--max-size", type=int, default=1024,
-                        help="Downscale longest edge to this (0 = full resolution)")
-    args = parser.parse_args()
-
-    os.makedirs(os.path.dirname(args.output) or ".", exist_ok=True)
+def run_inference(model_path, image_path, output_path, max_size=1024):
+    os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
 
     t0 = time.perf_counter()
 
-    print(f"Loading model: {args.model}")
-    session = ort.InferenceSession(args.model, providers=["CPUExecutionProvider"])
+    print(f"Loading model: {model_path}")
+    session = ort.InferenceSession(model_path, providers=["CPUExecutionProvider"])
     model_input = session.get_inputs()[0]
     input_name = model_input.name
     input_is_fp16 = model_input.type == "tensor(float16)"
@@ -38,20 +24,29 @@ def main():
     print(f"  FP16:          {input_is_fp16}")
     print(f"  Load model:    {t_model - t0:.3f}s")
 
-    print(f"Loading image: {args.image}")
-    image = Image.open(args.image)
+    print(f"Loading image: {image_path}")
+    image = Image.open(image_path)
     image = ImageOps.exif_transpose(image)
     image = image.convert("RGB")
     t_image = time.perf_counter()
     print(f"  Original size: {image.size[0]}x{image.size[1]}")
-    if args.max_size > 0:
-        image.thumbnail((args.max_size, args.max_size), Image.LANCZOS)
+    if max_size > 0:
+        image.thumbnail((max_size, max_size), Image.LANCZOS)
         print(f"  Resized to:    {image.size[0]}x{image.size[1]}")
     print(f"  Load image:    {t_image - t_model:.3f}s")
 
     # Preprocess: RGB [0, 1], BCHW
     arr = np.array(image).astype(np.float32) / 255.0
     arr = arr.transpose(2, 0, 1)[np.newaxis]
+
+    # Pad all edges to hide UNet border artifacts, then align to multiple of 16
+    _, _, h, w = arr.shape
+    border = 16
+    ph = border + (16 - (h + 2 * border) % 16) % 16
+    pw = border + (16 - (w + 2 * border) % 16) % 16
+    arr = np.pad(arr, ((0, 0), (0, 0), (border, ph), (border, pw)), mode="reflect")
+    print(f"  Padded to:     {arr.shape[3]}x{arr.shape[2]} (border={border})")
+
     if input_is_fp16:
         arr = arr.astype(np.float16)
 
@@ -60,14 +55,31 @@ def main():
     t_infer = time.perf_counter()
     print(f"  Inference:     {t_infer - t_image:.3f}s")
 
-    # Postprocess: BCHW -> HWC, clip, uint8
+    # Postprocess: crop padding, BCHW -> HWC, clip, uint8
+    output = output[:, :, border:border + h, border:border + w]
     output = output[0].astype(np.float32).transpose(1, 2, 0)
     output = np.clip(output, 0, 1)
     output = (output * 255).astype(np.uint8)
 
-    Image.fromarray(output).save(args.output)
-    print(f"Saved: {args.output}")
+    Image.fromarray(output).save(output_path)
+    print(f"Saved: {output_path}")
     print(f"  Total:         {time.perf_counter() - t0:.3f}s")
+
+
+def demo(model, image, output, **kwargs):
+    """Entry point for programmatic demo."""
+    run_inference(model, image, output, max_size=kwargs.get("max_size", 1024))
+
+
+def main():
+    parser = argparse.ArgumentParser(description="NIND UNet ONNX denoising demo.")
+    parser.add_argument("--model", type=str, required=True)
+    parser.add_argument("--image", type=str, required=True)
+    parser.add_argument("--output", type=str, required=True)
+    parser.add_argument("--max-size", type=int, default=1024)
+    args = parser.parse_args()
+
+    demo(args.model, args.image, args.output, max_size=args.max_size)
 
 
 if __name__ == "__main__":
