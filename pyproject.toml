@@ -41,11 +41,17 @@ segnext = [
 bsrgan = [
     {include-group = "core"},
 ]
+openclip = [
+    {include-group = "core"},
+    "open_clip_torch",
+    "onnxscript",
+]
 all-models = [
     {include-group = "nafnet"},
     {include-group = "nind"},
     {include-group = "segnext"},
     {include-group = "bsrgan"},
+    {include-group = "openclip"},
 ]
 eval = [
     "numpy<2.0",
