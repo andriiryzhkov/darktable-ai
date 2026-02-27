@@ -88,17 +88,21 @@ def run_inference(model_path, input_path, output_path, max_size=1024):
     end_time = time.time()
     print(f"Total execution time: {end_time - start_time:.4f} seconds")
 
+def demo(model, image, output, **kwargs):
+    """Entry point for programmatic demo."""
+    run_inference(model, image, output, max_size=kwargs.get("max_size", 1024))
+
+
 def main():
     parser = argparse.ArgumentParser(description='Run NAFNet ONNX Demo')
-    parser.add_argument('--model', type=str, required=True, help='Path to ONNX model')
-    parser.add_argument('--image', type=str, required=True, help='Path to input image')
-    parser.add_argument('--output', type=str, required=True, help='Path to output image')
-    parser.add_argument('--max-size', type=int, default=1024,
-                        help='Downscale longest edge to this (0 = full resolution)')
-
+    parser.add_argument('--model', type=str, required=True)
+    parser.add_argument('--image', type=str, required=True)
+    parser.add_argument('--output', type=str, required=True)
+    parser.add_argument('--max-size', type=int, default=1024)
     args = parser.parse_args()
-    
-    run_inference(args.model, args.image, args.output, max_size=args.max_size)
+
+    demo(args.model, args.image, args.output, max_size=args.max_size)
+
 
 if __name__ == '__main__':
     main()

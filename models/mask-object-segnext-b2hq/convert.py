@@ -19,7 +19,8 @@ import torch.nn.functional as F
 
 # Add SegNext source to path for model loading
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(SCRIPT_DIR, "SegNext", "segnext"))
+DTAI_ROOT = os.environ.get("DTAI_ROOT", os.path.join(SCRIPT_DIR, "../.."))
+sys.path.insert(0, os.path.join(DTAI_ROOT, "vendor", "SegNext", "segnext"))
 
 from isegm.utils.serialization import load_model
 
@@ -340,17 +341,20 @@ def run_decoder_export(model, output, opset, image_feats):
 # Main
 # ---------------------------------------------------------------------------
 
+def convert(checkpoint, output_dir, opset=17):
+    """Entry point for programmatic conversion."""
+    os.makedirs(output_dir, exist_ok=True)
+    encoder_path = os.path.join(output_dir, "encoder.onnx")
+    decoder_path = os.path.join(output_dir, "decoder.onnx")
+
+    print(f"Loading model from {checkpoint}...")
+    model = load_segnext_model(checkpoint)
+
+    image_feats = run_encoder_export(model, encoder_path, opset)
+    run_decoder_export(model, decoder_path, opset, image_feats)
+    print("Done!")
+
+
 if __name__ == "__main__":
     args = parser.parse_args()
-
-    os.makedirs(args.output_dir, exist_ok=True)
-    encoder_path = os.path.join(args.output_dir, "encoder.onnx")
-    decoder_path = os.path.join(args.output_dir, "decoder.onnx")
-
-    print(f"Loading model from {args.checkpoint}...")
-    model = load_segnext_model(args.checkpoint)
-
-    image_feats = run_encoder_export(model, encoder_path, args.opset)
-    run_decoder_export(model, decoder_path, args.opset, image_feats)
-
-    print("Done!")
+    convert(args.checkpoint, args.output_dir, args.opset)

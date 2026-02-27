@@ -11,7 +11,8 @@ import sys
 import torch
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(SCRIPT_DIR, "nind-denoise", "src"))
+DTAI_ROOT = os.environ.get("DTAI_ROOT", os.path.join(SCRIPT_DIR, "../.."))
+sys.path.insert(0, os.path.join(DTAI_ROOT, "vendor", "nind-denoise", "src"))
 
 from nind_denoise.networks.ThirdPartyNets import UNet
 
@@ -56,18 +57,21 @@ def export_to_onnx(model, output_path, input_height=256, input_width=256,
     print(f"Model exported to {output_path}")
 
     import onnx
-    import onnxsim
     onnx_model = onnx.load(output_path)
     onnx.checker.check_model(onnx_model)
     print("ONNX model verification passed!")
 
-    print("Simplifying model...")
-    onnx_model, ok = onnxsim.simplify(onnx_model)
-    if ok:
-        onnx.save(onnx_model, output_path)
-        print("Model simplified successfully")
-    else:
-        print("Warning: simplification failed, using unsimplified model")
+    try:
+        import onnxsim
+        print("Simplifying model...")
+        onnx_model, ok = onnxsim.simplify(onnx_model)
+        if ok:
+            onnx.save(onnx_model, output_path)
+            print("Model simplified successfully")
+        else:
+            print("Warning: simplification failed, using unsimplified model")
+    except ImportError:
+        print("onnx-simplifier not installed, skipping.")
 
     if fp16:
         if not HAS_ONNX_CONVERTER:
@@ -80,39 +84,31 @@ def export_to_onnx(model, output_path, input_height=256, input_width=256,
         print(f"FP16 model saved to {output_path}")
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Export NIND UNet to ONNX")
-    parser.add_argument("--checkpoint", type=str, required=True,
-                        help="Path to .pt state dict checkpoint")
-    parser.add_argument("--output", type=str, default="model.onnx",
-                        help="Output ONNX file path")
-    parser.add_argument("--height", type=int, default=256,
-                        help="Input height for tracing")
-    parser.add_argument("--width", type=int, default=256,
-                        help="Input width for tracing")
-    parser.add_argument("--static", action="store_true",
-                        help="Use static input shapes")
-    parser.add_argument("--opset", type=int, default=11,
-                        help="ONNX opset version")
-    parser.add_argument("--fp16", action="store_true",
-                        help="Export in half precision (FP16)")
-    args = parser.parse_args()
-
-    os.makedirs(os.path.dirname(args.output) or ".", exist_ok=True)
+def convert(checkpoint, output="model.onnx", height=256, width=256,
+            opset=11, fp16=False):
+    """Entry point for programmatic conversion."""
+    os.makedirs(os.path.dirname(output) or ".", exist_ok=True)
 
     print("Loading NIND UNet model...")
-    model = load_model(args.checkpoint)
+    model = load_model(checkpoint)
 
     print("Exporting to ONNX...")
-    export_to_onnx(
-        model,
-        args.output,
-        input_height=args.height,
-        input_width=args.width,
-        dynamic_shapes=not args.static,
-        opset_version=args.opset,
-        fp16=args.fp16,
-    )
+    export_to_onnx(model, output, input_height=height, input_width=width,
+                   opset_version=opset, fp16=fp16)
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Export NIND UNet to ONNX")
+    parser.add_argument("--checkpoint", type=str, required=True)
+    parser.add_argument("--output", type=str, default="model.onnx")
+    parser.add_argument("--height", type=int, default=256)
+    parser.add_argument("--width", type=int, default=256)
+    parser.add_argument("--opset", type=int, default=11)
+    parser.add_argument("--fp16", action="store_true")
+    args = parser.parse_args()
+
+    convert(args.checkpoint, args.output, args.height, args.width,
+            args.opset, args.fp16)
 
 
 if __name__ == "__main__":

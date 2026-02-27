@@ -118,18 +118,13 @@ def export_to_onnx(model, output_path, scale, opset_version):
         pass
 
 
-def main():
-    parser = argparse.ArgumentParser(description='Export BSRGAN RRDBNet to ONNX')
-    parser.add_argument('--checkpoint', required=True, help='Path to .pth checkpoint')
-    parser.add_argument('--output', required=True, help='Output ONNX path')
-    parser.add_argument('--scale', type=int, required=True, choices=[2, 4],
-                        help='Upscaling factor (2 or 4)')
-    parser.add_argument('--opset', type=int, default=17, help='ONNX opset version')
-    args = parser.parse_args()
+def convert(checkpoint, output, scale, opset=17):
+    """Entry point for programmatic conversion."""
+    scale = int(scale)
 
-    print(f"Loading BSRGAN model (scale={args.scale})...")
-    model = RRDBNet(in_nc=3, out_nc=3, nf=64, nb=23, gc=32, sf=args.scale)
-    state_dict = torch.load(args.checkpoint, map_location='cpu')
+    print(f"Loading BSRGAN model (scale={scale})...")
+    model = RRDBNet(in_nc=3, out_nc=3, nf=64, nb=23, gc=32, sf=scale)
+    state_dict = torch.load(checkpoint, map_location='cpu')
     model.load_state_dict(state_dict, strict=True)
     model.eval()
 
@@ -137,7 +132,18 @@ def main():
     print(f"  Parameters: {param_count:,}")
 
     print("Exporting to ONNX...")
-    export_to_onnx(model, args.output, args.scale, args.opset)
+    export_to_onnx(model, output, scale, opset)
+
+
+def main():
+    parser = argparse.ArgumentParser(description='Export BSRGAN RRDBNet to ONNX')
+    parser.add_argument('--checkpoint', required=True)
+    parser.add_argument('--output', required=True)
+    parser.add_argument('--scale', type=int, required=True, choices=[2, 4])
+    parser.add_argument('--opset', type=int, default=17)
+    args = parser.parse_args()
+
+    convert(args.checkpoint, args.output, args.scale, args.opset)
 
 
 if __name__ == '__main__':
