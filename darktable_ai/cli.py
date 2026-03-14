@@ -26,10 +26,27 @@ def _load_config(root: Path, model_id: str) -> ModelConfig:
     return load_model_config(model_dir, root)
 
 
-def _for_each_model(root: Path, model_id: str | None, callback) -> None:
+def _sync_deps(config: ModelConfig) -> None:
+    """Ensure the model's dependency group is installed."""
+    group = config.dep_group
+    if group == "core":
+        return
+    click.echo(f"  Syncing dependency group: {group}")
+    subprocess.run(
+        ["uv", "sync", "--group", group],
+        cwd=str(config.root_dir),
+        check=True,
+    )
+
+
+def _for_each_model(
+    root: Path, model_id: str | None, callback, *, sync: bool = False
+) -> None:
     """Run callback for one model or all non-skipped models."""
     if model_id:
         config = _load_config(root, model_id)
+        if sync:
+            _sync_deps(config)
         callback(config)
     else:
         for config in discover_models(root):
@@ -39,6 +56,8 @@ def _for_each_model(root: Path, model_id: str | None, callback) -> None:
             click.echo(f"\n{'=' * 40}")
             click.echo(f"  {config.id}")
             click.echo(f"{'=' * 40}")
+            if sync:
+                _sync_deps(config)
             callback(config)
 
 
@@ -61,12 +80,16 @@ def setup(ctx, model_id):
     root = _get_root(ctx)
 
     def _setup(config: ModelConfig):
-        if config.checkpoints:
-            download_checkpoints(config.checkpoints, root)
-
-        if config.repo and config.repo.setup:
+        if config.repo:
             repo_dir = config.repo_dir
-            if repo_dir and repo_dir.is_dir():
+            if repo_dir and not repo_dir.is_dir():
+                click.echo(f"  Initializing submodule: {config.repo.submodule}")
+                subprocess.run(
+                    ["git", "submodule", "update", "--init", config.repo.submodule],
+                    cwd=str(root), check=True,
+                )
+
+            if config.repo.setup and repo_dir and repo_dir.is_dir():
                 click.echo(f"  Running repo setup: {config.repo.setup}")
                 env = os.environ.copy()
                 env["DTAI_ROOT"] = str(root)
@@ -74,12 +97,9 @@ def setup(ctx, model_id):
                     config.repo.setup, shell=True,
                     cwd=str(repo_dir), env=env, check=True,
                 )
-            else:
-                click.echo(
-                    f"  Warning: submodule not found at {repo_dir}. "
-                    f"Run: git submodule update --init",
-                    err=True,
-                )
+
+        if config.checkpoints:
+            download_checkpoints(config.checkpoints, root)
 
     _for_each_model(root, model_id, _setup)
 
@@ -92,7 +112,7 @@ def convert(ctx, model_id):
     from darktable_ai.convert import run_conversion
 
     root = _get_root(ctx)
-    _for_each_model(root, model_id, run_conversion)
+    _for_each_model(root, model_id, run_conversion, sync=True)
 
 
 @main.command()
@@ -103,7 +123,7 @@ def validate(ctx, model_id):
     from darktable_ai.validate import run_validation
 
     root = _get_root(ctx)
-    _for_each_model(root, model_id, run_validation)
+    _for_each_model(root, model_id, run_validation, sync=True)
 
 
 @main.command("package")
@@ -125,7 +145,7 @@ def demo(ctx, model_id):
     from darktable_ai.demo import run_demo
 
     root = _get_root(ctx)
-    _for_each_model(root, model_id, run_demo)
+    _for_each_model(root, model_id, run_demo, sync=True)
 
 
 @main.command()
@@ -157,7 +177,7 @@ def run(ctx, model_id):
         click.echo("\n=== Demo ===")
         run_demo(config)
 
-    _for_each_model(root, model_id, _run_pipeline)
+    _for_each_model(root, model_id, _run_pipeline, sync=True)
 
 
 @main.command("list")
@@ -169,8 +189,11 @@ def list_models(ctx, as_json):
     models = discover_models(root)
 
     if as_json:
-        ids = [m.id for m in models if not m.skip]
-        click.echo(json.dumps(ids))
+        matrix = [
+            {"id": m.id, "dep_group": m.dep_group}
+            for m in models if not m.skip
+        ]
+        click.echo(json.dumps(matrix))
     else:
         for config in models:
             status = " (skipped)" if config.skip else ""
