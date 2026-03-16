@@ -12,6 +12,7 @@ Currently targets the ONNX backend. The pipeline is designed to support addition
 | [`denoise-nind`](models/denoise-nind/README.md)                                 | denoise     | UNet denoiser trained on NIND dataset         |
 | [`mask-object-segnext-b2hq`](models/mask-object-segnext-b2hq/README.md)         | mask-object | SegNext ViT-B SAx2 HQ for masking             |
 | [`upscale-bsrgan`](models/upscale-bsrgan/README.md)                            | upscale     | BSRGAN 2x and 4x blind super-resolution      |
+| [`mask-depth-da3mono-large`](models/mask-depth-da3mono-large/README.md)         | depth   | Depth Anything 3 Mono-Large for depth masking  |
 
 ## Repository structure
 

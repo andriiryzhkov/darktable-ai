@@ -1,0 +1,8 @@
+id: mask-depth-da2-small
+name: "mask depth anything v2 small"
+description: "Depth Anything V2 Small for depth-based masking"
+task: depth
+
+checkpoints:
+  - url: "https://huggingface.co/onnx-community/depth-anything-v2-small/resolve/main/onnx/model.onnx"
+    path: "output/mask-depth-da2-small/model.onnx"

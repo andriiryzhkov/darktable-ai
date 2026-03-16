@@ -7,7 +7,6 @@
 #       --image images/example_01.jpg \
 #       --output models/mask-depth-da2-small/output/depth_01.png
 
-import argparse
 import os
 import time
 
@@ -47,46 +46,41 @@ def postprocess(depth: np.ndarray) -> np.ndarray:
     return (d * 255).astype(np.uint8)
 
 
-def main():
+def demo(model, image, output, **kwargs):
+    """Run depth inference on a single image."""
+    os.makedirs(os.path.dirname(output) or ".", exist_ok=True)
+
+    t0 = time.perf_counter()
+
+    session = ort.InferenceSession(model, providers=["CPUExecutionProvider"])
+    input_name = session.get_inputs()[0].name
+    t_model = time.perf_counter()
+    print(f"    Load model:    {t_model - t0:.3f}s")
+
+    img = Image.open(image)
+    img = ImageOps.exif_transpose(img)
+    img = img.convert("RGB")
+    input_tensor, orig_size = preprocess(img)
+    t_image = time.perf_counter()
+    print(f"    Input:         {input_tensor.shape[3]}x{input_tensor.shape[2]}")
+    print(f"    Load image:    {t_image - t_model:.3f}s")
+
+    [depth] = session.run(None, {input_name: input_tensor})
+    t_infer = time.perf_counter()
+    print(f"    Inference:     {t_infer - t_image:.3f}s")
+
+    depth_img = Image.fromarray(postprocess(depth))
+    depth_img = depth_img.resize(orig_size, Image.LANCZOS)
+    depth_img.save(output)
+    print(f"    Total:         {t_infer - t0:.3f}s")
+
+
+if __name__ == "__main__":
+    import argparse
+
     parser = argparse.ArgumentParser(description="Depth Anything V2 Small ONNX depth inference demo.")
     parser.add_argument("--model", type=str, required=True, help="Path to model.onnx")
     parser.add_argument("--image", type=str, required=True, help="Input image path")
     parser.add_argument("--output", type=str, required=True, help="Output depth PNG path")
     args = parser.parse_args()
-
-    os.makedirs(os.path.dirname(args.output) or ".", exist_ok=True)
-
-    t0 = time.perf_counter()
-
-    print(f"Loading model: {args.model}")
-    session = ort.InferenceSession(args.model, providers=["CPUExecutionProvider"])
-    input_name = session.get_inputs()[0].name
-    t_model = time.perf_counter()
-    print(f"  Input name:    {input_name}")
-    print(f"  Load model:    {t_model - t0:.3f}s")
-
-    print(f"Loading image: {args.image}")
-    image = Image.open(args.image)
-    image = ImageOps.exif_transpose(image)
-    image = image.convert("RGB")
-    input_tensor, orig_size = preprocess(image)
-    t_image = time.perf_counter()
-    print(f"  Original size: {orig_size[0]}x{orig_size[1]}")
-    print(f"  Model input:   {input_tensor.shape[3]}x{input_tensor.shape[2]}")
-    print(f"  Load image:    {t_image - t_model:.3f}s")
-
-    print("Running inference...")
-    [depth] = session.run(None, {input_name: input_tensor})
-    t_infer = time.perf_counter()
-    print(f"  Output shape:  {depth.shape}")
-    print(f"  Inference:     {t_infer - t_image:.3f}s")
-
-    depth_img = Image.fromarray(postprocess(depth))
-    depth_img = depth_img.resize(orig_size, Image.LANCZOS)
-    depth_img.save(args.output)
-    print(f"Saved depth map: {args.output}")
-    print(f"  Total:         {t_infer - t0:.3f}s")
-
-
-if __name__ == "__main__":
-    main()
+    demo(args.model, args.image, args.output)

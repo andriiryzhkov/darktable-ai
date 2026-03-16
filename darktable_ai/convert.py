@@ -12,20 +12,18 @@ from darktable_ai.config import ModelConfig
 
 def run_conversion(config: ModelConfig) -> None:
     """Execute all conversion steps defined in model.yaml."""
-    if not config.convert:
-        print("  No conversion steps defined — skipping.")
-        return
-
     config.output_dir.mkdir(parents=True, exist_ok=True)
-    _setup_vendor_paths(config)
 
-    for i, step in enumerate(config.convert, 1):
-        label = f"[{i}/{len(config.convert)}]" if len(config.convert) > 1 else ""
-        print(f"  {label} {step.script}".strip())
+    if config.convert:
+        _setup_vendor_paths(config)
 
-        module = _import_script(config.model_dir / step.script)
-        kwargs = _resolve_args(config, step.args)
-        module.convert(**kwargs)
+        for i, step in enumerate(config.convert, 1):
+            label = f"[{i}/{len(config.convert)}]" if len(config.convert) > 1 else ""
+            print(f"  {label} {step.script}".strip())
+
+            module = _import_script(config.model_dir / step.script)
+            kwargs = _resolve_args(config, step.args)
+            module.convert(**kwargs)
 
     generate_config_json(config)
 
