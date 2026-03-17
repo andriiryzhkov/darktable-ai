@@ -1,0 +1,22 @@
+id: mask-object-sam21-base-plus
+name: "mask sam2.1 hiera base plus"
+description: "Segment Anything 2.1 (Hiera Base Plus) for interactive masking"
+task: mask
+arch: sam2
+type: split
+dep_group: sam21
+
+repo:
+  submodule: vendor/sam2
+
+checkpoints:
+  - url: "https://dl.fbaipublicfiles.com/segment_anything_2/092824/sam2.1_hiera_base_plus.pt"
+    path: "temp/mask-object-sam21-base-plus/sam2.1_hiera_base_plus.pt"
+
+convert:
+  - script: ../mask-object-sam21-small/convert.py
+    args:
+      model_cfg: "configs/sam2.1/sam2.1_hiera_b+.yaml"
+      checkpoint: "{temp}/sam2.1_hiera_base_plus.pt"
+      output_dir: "{output}"
+      opset: 17
