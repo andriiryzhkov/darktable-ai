@@ -93,13 +93,13 @@ def run_inference(encoder_path, decoder_path, image_path, output_path, points):
         "mask_input": mask_input,
         "has_mask_input": has_mask_input,
     })
-    masks, iou_predictions, low_res_masks = dec_outputs
+    masks, iou_predictions = dec_outputs
     t_dec = time.perf_counter()
     print(f"  Decoder:       {t_dec - t_enc:.3f}s")
     print(f"  Masks shape:   {masks.shape}")
     print(f"  IoU scores:    {iou_predictions[0]}")
 
-    # masks shape: [B, 3, 1024, 1024] - select best by IoU
+    # Select best mask by IoU
     best_idx = int(np.argmax(iou_predictions[0]))
     mask_logits = masks[0, best_idx]
     print(f"  Best mask:     #{best_idx} (IoU={iou_predictions[0, best_idx]:.4f})")

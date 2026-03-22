@@ -14,8 +14,6 @@ import warnings
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-
 from sam2.build_sam import build_sam2
 from sam2.modeling.sam2_base import SAM2Base
 
@@ -103,9 +101,8 @@ class SAM2DecoderOnnxModel(nn.Module):
         has_mask_input:   (1,)
 
     Outputs:
-        masks:           (B, num_masks, 1024, 1024)
+        masks:           (B, num_masks, 256, 256)
         iou_predictions: (B, num_masks)
-        low_res_masks:   (B, num_masks, 256, 256)
     """
 
     def __init__(self, sam_model: SAM2Base, multimask_output: bool):
@@ -132,7 +129,7 @@ class SAM2DecoderOnnxModel(nn.Module):
 
         high_res_feats = [high_res_feats_0, high_res_feats_1]
 
-        low_res_masks, iou_predictions, _, _ = self.mask_decoder.predict_masks(
+        masks, iou_predictions, _, _ = self.mask_decoder.predict_masks(
             image_embeddings=image_embed,
             image_pe=self.prompt_encoder.get_dense_pe(),
             sparse_prompt_embeddings=sparse_embedding,
@@ -141,13 +138,9 @@ class SAM2DecoderOnnxModel(nn.Module):
             high_res_features=high_res_feats,
         )
 
-        # Upscale from 256x256 to full 1024x1024 resolution
-        masks = F.interpolate(low_res_masks, size=(1024, 1024), mode="bilinear", align_corners=False)
-
         if self.multimask_output:
             masks = masks[:, 1:, :, :]
             iou_predictions = iou_predictions[:, 1:]
-            low_res_masks = low_res_masks[:, 1:, :, :]
         else:
             masks, iou_predictions = (
                 self.mask_decoder._dynamic_multimask_via_stability(
@@ -157,7 +150,7 @@ class SAM2DecoderOnnxModel(nn.Module):
 
         masks = torch.clamp(masks, -32.0, 32.0)
 
-        return masks, iou_predictions, low_res_masks
+        return masks, iou_predictions
 
     def _embed_points(
         self, point_coords: torch.Tensor, point_labels: torch.Tensor
@@ -295,7 +288,7 @@ def run_decoder_export(
                 opset_version=opset,
                 do_constant_folding=True,
                 input_names=list(dummy_inputs.keys()),
-                output_names=["masks", "iou_predictions", "low_res_masks"],
+                output_names=["masks", "iou_predictions"],
                 dynamic_axes=dynamic_axes,
                 dynamo=False,
             )
