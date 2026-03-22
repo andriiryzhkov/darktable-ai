@@ -309,6 +309,16 @@ def simplify_model(model_path):
     onnx_model = onnx.load(model_path)
     model_simp, check = onnxsim.simplify(onnx_model)
     if check:
+        # Remove value_info entries with empty shapes that cause
+        # onnxruntime MergeShapeInfo warnings (e.g. conv_s0, conv_s1)
+        to_remove = [
+            vi for vi in model_simp.graph.value_info
+            if len(vi.type.tensor_type.shape.dim) == 0
+        ]
+        for vi in to_remove:
+            model_simp.graph.value_info.remove(vi)
+        if to_remove:
+            print(f"Removed {len(to_remove)} empty shape annotations.")
         onnx.save(model_simp, model_path)
         print("Graph simplification passed.")
     else:
