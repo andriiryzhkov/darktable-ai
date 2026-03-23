@@ -38,6 +38,7 @@ class ModelConfig:
     description: str
     task: str
     type: str = "single"
+    version: str = "1.0"
     arch: str = "generic"
     tiling: bool = False
     dep_group: str = "core"
@@ -110,6 +111,7 @@ def load_model_config(model_dir: Path, root_dir: Path) -> ModelConfig:
         description=data["description"],
         task=data["task"],
         type=data.get("type", "single"),
+        version=data.get("version", "1.0"),
         arch=data.get("arch", "generic"),
         tiling=data.get("tiling", False),
         dep_group=data.get("dep_group", "core"),
