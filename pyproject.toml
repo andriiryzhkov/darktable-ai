@@ -20,6 +20,7 @@ core = [
     "numpy<2.0",
     "onnx>=1.10.0",
     "onnxruntime",
+    "onnxsim",
     "opencv-python",
 ]
 nafnet = [
@@ -29,7 +30,6 @@ nafnet = [
 nind = [
     {include-group = "core"},
     "onnxconverter-common",
-    "onnxsim",
 ]
 segnext = [
     {include-group = "core"},
