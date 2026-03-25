@@ -2,6 +2,7 @@ id: denoise-nafnet
 name: "denoise nafnet small"
 description: "NAFNet denoiser trained on SIDD dataset"
 task: denoise
+version: "1.0"
 tiling: true
 type: single
 dep_group: nafnet
