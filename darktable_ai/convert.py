@@ -42,7 +42,7 @@ def generate_config_json(config: ModelConfig) -> None:
         "task": config.task,
         "arch": config.arch,
         "backend": "onnx",
-        "version": "1.0",
+        "version": config.version,
         "tiling": config.tiling,
     }
 

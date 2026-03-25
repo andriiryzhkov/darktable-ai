@@ -2,6 +2,7 @@ id: denoise-nind
 name: "denoise nind"
 description: "UNet denoiser trained on NIND dataset"
 task: denoise
+version: "1.0"
 tiling: true
 type: single
 dep_group: nind
