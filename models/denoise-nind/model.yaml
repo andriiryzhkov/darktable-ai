@@ -20,4 +20,4 @@ convert:
       checkpoint: "{temp}/generator_280.pt"
       output: "{output}/model.onnx"
       opset: 17
-      fp16: true
+      fp16: false
