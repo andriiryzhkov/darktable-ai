@@ -214,6 +214,7 @@ def versions(ctx):
         }
     }
     output_path = root / "output" / "versions.json"
+    output_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, "w") as f:
         json.dump(data, f, indent=2)
         f.write("\n")
