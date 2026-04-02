@@ -25,6 +25,9 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Generate versions.json
+        run: uv run dtai versions
+
       - id: find
         name: Discover non-skipped models
         run: |
