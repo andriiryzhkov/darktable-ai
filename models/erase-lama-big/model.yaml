@@ -1,0 +1,18 @@
+id: erase-lama-big
+name: "lama big"
+description: "Large Mask Inpainting for object erasure"
+task: erase
+version: "1.0"
+
+checkpoints:
+  - url: "https://huggingface.co/Carve/LaMa-ONNX/resolve/main/lama_fp32.onnx"
+    path: "output/erase-lama-big/model.onnx"
+
+demo:
+  image_args:
+    example_01:
+      mask: "0.30,0.15,0.75,0.85"
+    example_02:
+      mask: "0.40,0.35,0.75,0.80"
+    example_03:
+      mask: "0.10,0.40,0.45,0.95"

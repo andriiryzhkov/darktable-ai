@@ -29,8 +29,6 @@ def _load_config(root: Path, model_id: str) -> ModelConfig:
 def _sync_deps(config: ModelConfig) -> None:
     """Ensure the model's dependency group is installed."""
     group = config.dep_group
-    if group == "core":
-        return
     click.echo(f"  Syncing dependency group: {group}")
     subprocess.run(
         ["uv", "sync", "--group", group],

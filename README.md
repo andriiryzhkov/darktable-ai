@@ -12,6 +12,7 @@ Currently targets the ONNX backend. The pipeline is designed to support addition
 | [`denoise-nind`](models/denoise-nind/README.md)                                 | denoise     | UNet denoiser trained on NIND dataset         |
 | [`mask-object-segnext-b2hq`](models/mask-object-segnext-b2hq/README.md)         | mask-object | SegNext ViT-B SAx2 HQ for masking             |
 | [`upscale-bsrgan`](models/upscale-bsrgan/README.md)                            | upscale     | BSRGAN 2x and 4x blind super-resolution      |
+| [`erase-lama-big`](models/erase-lama-big/README.md)                             | erase   | LaMa Big for object erasure (inpainting)      |
 
 ## Repository structure
 
