@@ -9,7 +9,6 @@ Currently targets the ONNX backend. The pipeline is designed to support addition
 | Model                                                                         | Task    | Description                                     |
 |-------------------------------------------------------------------------------|---------|-------------------------------------------------|
 | [`denoise-nind`](models/denoise-nind/README.md)                               | denoise | UNet denoiser trained on NIND dataset           |
-| [`depth-da2-small`](models/depth-da2-small/README.md)                         | depth   | Depth Anything V2 Small for depth masking       |
 | [`embed-openclip-vitb32`](models/embed-openclip-vitb32/README.md)             | embed   | OpenCLIP ViT-B/32 text/image embeddings         |
 | [`mask-object-sam21-base-plus`](models/mask-object-sam21-base-plus/README.md) | mask    | SAM 2.1 Hiera Base Plus for interactive masking |
 | [`mask-object-sam21-small`](models/mask-object-sam21-small/README.md)         | mask    | SAM 2.1 Hiera Small for interactive masking     |
