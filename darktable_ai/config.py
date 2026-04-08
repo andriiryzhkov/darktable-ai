@@ -41,6 +41,7 @@ class ModelConfig:
     version: str = "1.0"
     arch: str = "generic"
     tiling: bool = False
+    input_size: int = 0
     dep_group: str = "core"
     skip: bool = False
 
@@ -114,6 +115,7 @@ def load_model_config(model_dir: Path, root_dir: Path) -> ModelConfig:
         version=data.get("version", "1.0"),
         arch=data.get("arch", "generic"),
         tiling=data.get("tiling", False),
+        input_size=data.get("input_size", 0),
         dep_group=data.get("dep_group", "core"),
         skip=skip,
         repo=repo,

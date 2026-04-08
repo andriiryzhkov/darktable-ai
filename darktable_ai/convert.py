@@ -44,6 +44,7 @@ def generate_config_json(config: ModelConfig) -> None:
         "backend": "onnx",
         "version": config.version,
         "tiling": config.tiling,
+        "input_size": config.input_size,
     }
 
     config_file.write_text(json.dumps(data, indent=4) + "\n")

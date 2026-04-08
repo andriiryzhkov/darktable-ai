@@ -4,6 +4,7 @@ description: "UNet denoiser trained on NIND dataset"
 task: denoise
 version: "1.0"
 tiling: true
+input_size: 1024
 type: single
 dep_group: nind
 
@@ -19,5 +20,8 @@ convert:
     args:
       checkpoint: "{temp}/generator_280.pt"
       output: "{output}/model.onnx"
+      height: 1024
+      width: 1024
+      dynamic_shapes: false
       opset: 17
       fp16: false

@@ -24,28 +24,29 @@ def run_inference(model_path, image_path, output_path, max_size=1024):
     print(f"  FP16:          {input_is_fp16}")
     print(f"  Load model:    {t_model - t0:.3f}s")
 
+    # Model has fixed 1024x1024 input
+    model_size = model_input.shape[2]
+
     print(f"Loading image: {image_path}")
     image = Image.open(image_path)
     image = ImageOps.exif_transpose(image)
     image = image.convert("RGB")
     t_image = time.perf_counter()
     print(f"  Original size: {image.size[0]}x{image.size[1]}")
-    if max_size > 0:
-        image.thumbnail((max_size, max_size), Image.LANCZOS)
-        print(f"  Resized to:    {image.size[0]}x{image.size[1]}")
+    image.thumbnail((model_size, model_size), Image.LANCZOS)
+    w, h = image.size
+    print(f"  Resized to:    {w}x{h}")
     print(f"  Load image:    {t_image - t_model:.3f}s")
 
     # Preprocess: RGB [0, 1], BCHW
     arr = np.array(image).astype(np.float32) / 255.0
     arr = arr.transpose(2, 0, 1)[np.newaxis]
 
-    # Pad all edges to hide UNet border artifacts, then align to multiple of 16
-    _, _, h, w = arr.shape
-    border = 16
-    ph = border + (16 - (h + 2 * border) % 16) % 16
-    pw = border + (16 - (w + 2 * border) % 16) % 16
-    arr = np.pad(arr, ((0, 0), (0, 0), (border, ph), (border, pw)), mode="reflect")
-    print(f"  Padded to:     {arr.shape[3]}x{arr.shape[2]} (border={border})")
+    # Pad to exactly model_size x model_size
+    pad_h = model_size - h
+    pad_w = model_size - w
+    arr = np.pad(arr, ((0, 0), (0, 0), (0, pad_h), (0, pad_w)), mode="reflect")
+    print(f"  Padded to:     {arr.shape[3]}x{arr.shape[2]}")
 
     if input_is_fp16:
         arr = arr.astype(np.float16)
@@ -56,7 +57,7 @@ def run_inference(model_path, image_path, output_path, max_size=1024):
     print(f"  Inference:     {t_infer - t_image:.3f}s")
 
     # Postprocess: crop padding, BCHW -> HWC, clip, uint8
-    output = output[:, :, border:border + h, border:border + w]
+    output = output[:, :, :h, :w]
     output = output[0].astype(np.float32).transpose(1, 2, 0)
     output = np.clip(output, 0, 1)
     output = (output * 255).astype(np.uint8)

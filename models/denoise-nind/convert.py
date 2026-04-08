@@ -85,7 +85,7 @@ def export_to_onnx(model, output_path, input_height=256, input_width=256,
 
 
 def convert(checkpoint, output="model.onnx", height=256, width=256,
-            opset=11, fp16=False):
+            dynamic_shapes=True, opset=11, fp16=False):
     """Entry point for programmatic conversion."""
     os.makedirs(os.path.dirname(output) or ".", exist_ok=True)
 
@@ -94,7 +94,7 @@ def convert(checkpoint, output="model.onnx", height=256, width=256,
 
     print("Exporting to ONNX...")
     export_to_onnx(model, output, input_height=height, input_width=width,
-                   opset_version=opset, fp16=fp16)
+                   dynamic_shapes=dynamic_shapes, opset_version=opset, fp16=fp16)
 
 
 def main():
