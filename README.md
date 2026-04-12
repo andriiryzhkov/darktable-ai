@@ -6,19 +6,22 @@ Currently targets the ONNX backend. The pipeline is designed to support addition
 
 ## Models
 
-| Model                                                                           | Task        | Description                                   |
-|---------------------------------------------------------------------------------|-------------|-----------------------------------------------|
-| [`denoise-nafnet`](models/denoise-nafnet/README.md)                             | denoise     | NAFNet denoiser trained on SIDD dataset       |
-| [`denoise-nind`](models/denoise-nind/README.md)                                 | denoise     | UNet denoiser trained on NIND dataset         |
-| [`mask-object-segnext-b2hq`](models/mask-object-segnext-b2hq/README.md)         | mask-object | SegNext ViT-B SAx2 HQ for masking             |
-| [`upscale-bsrgan`](models/upscale-bsrgan/README.md)                            | upscale     | BSRGAN 2x and 4x blind super-resolution      |
+| Model                                                                         | Task    | Description                                     |
+|-------------------------------------------------------------------------------|---------|-------------------------------------------------|
+| [`denoise-nind`](models/denoise-nind/README.md)                               | denoise | UNet denoiser trained on NIND dataset           |
+| [`embed-openclip-vitb32`](models/embed-openclip-vitb32/README.md)             | embed   | OpenCLIP ViT-B/32 text/image embeddings         |
+| [`mask-object-sam21-base-plus`](models/mask-object-sam21-base-plus/README.md) | mask    | SAM 2.1 Hiera Base Plus for interactive masking |
+| [`mask-object-sam21-small`](models/mask-object-sam21-small/README.md)         | mask    | SAM 2.1 Hiera Small for interactive masking     |
+| [`mask-object-sam21-tiny`](models/mask-object-sam21-tiny/README.md)           | mask    | SAM 2.1 Hiera Tiny for interactive masking      |
+| [`mask-object-segnext-b2hq`](models/mask-object-segnext-b2hq/README.md)      | mask    | SegNext ViT-B SAx2 HQ for semantic masking      |
+| [`upscale-bsrgan`](models/upscale-bsrgan/README.md)                          | upscale | BSRGAN 2x and 4x blind super-resolution        |
 
 ## Repository structure
 
 ```
 pyproject.toml        Project configuration, dependency groups, CLI entry point
 darktable_ai/         Python package (CLI + pipeline orchestration)
-vendor/               Git submodules (NAFNet, nind-denoise, SegNext)
+vendor/               Git submodules (nind-denoise, sam2, SegNext)
 samples/<task>/        Sample images organized by task
 output/               Build output: ONNX models + config.json (gitignored)
 temp/                 Downloaded checkpoints (gitignored)
@@ -34,7 +37,7 @@ models/
 
 Requires [uv](https://docs.astral.sh/uv/) and Python 3.11–3.12.
 
-Dependencies are managed through [dependency groups](https://docs.astral.sh/uv/concepts/dependency-groups/) in `pyproject.toml`. The base package only needs `click` and `pyyaml`. ML dependencies are split into groups — one per model plus a shared `core` group — so you only install what you need. Use `uv sync --group <name>` to install a specific group, or `--group all-models` for everything.
+Dependencies are managed through [dependency groups](https://docs.astral.sh/uv/concepts/dependency-groups/) in `pyproject.toml`. The base package only needs `click` and `pyyaml`. ML dependencies are split into groups – one per model plus a shared `core` group – so you only install what you need. Use `uv sync --group <name>` to install a specific group, or `--group all-models` for everything.
 
 ## Setup
 
@@ -71,10 +74,28 @@ uv run dtai validate denoise-nind    # Validate ONNX output
 uv run dtai package denoise-nind     # Create .dtmodel archive
 uv run dtai demo denoise-nind        # Run demo on sample images
 
+# Generate versions.json
+uv run dtai versions
+
 # Evaluate a model
 uv sync --group eval
 uv run dtai eval mask mask-object-segnext-b2hq --limit 5
 ```
+
+## Versioning
+
+Each model has a `version` field in its `model.yaml` that gets written to `config.json`. The `dtai versions` command generates `output/versions.json` – a manifest mapping model IDs to their current versions:
+
+```json
+{
+  "models": {
+    "denoise-nind": "1.0",
+    "mask-object-sam21-small": "1.0"
+  }
+}
+```
+
+This file is published as a GitHub release asset alongside `.dtmodel` packages. darktable fetches it to check for model updates without downloading full packages.
 
 ## Demos
 
@@ -82,7 +103,7 @@ Each model includes a `demo.py` script that runs inference on sample images
 from `samples/<task>/`. Models that require per-image input (e.g. point prompts
 for object segmentation) define `image_args` in their `model.yaml`.
 
-Output images are saved to `models/<model>/output/`.
+Output images are saved to `output/<model>-demo/`.
 
 ## Model selection criteria
 
