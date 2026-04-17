@@ -1,0 +1,67 @@
+id: rawdenoise-nind
+name: "raw denoise nind"
+description: "UtNet2 raw denoiser trained on RawNIND (Bayer + linear Rec.2020 variants)"
+task: rawdenoise
+version: "0.1"
+arch: utnet2
+tiling: true
+type: multi
+dep_group: rawnind
+
+attributes:
+  input_sizes: [2048, 1536, 1024, 768, 512, 384, 256]
+  variants:
+    bayer:
+      onnx: model_bayer.onnx
+      in_channels: 4
+      input_kind: packed_bayer       # 4ch R/G1/G2/B, half-resolution, pre-demosaic
+      output_color_space: linear_rec2020
+    linear:
+      onnx: model_linear.onnx
+      in_channels: 3
+      input_kind: lin_rec2020         # already demosaicked (X-Trans, Foveon, etc.)
+      output_color_space: linear_rec2020
+
+repo:
+  submodule: vendor/rawnind_jddc
+
+checkpoints:
+  # DenoiserTrainingBayerToProfiledRGB_4ch_2024-02-21-bayer_ms-ssim_mgout_notrans_valeither_-4
+  # canonical "Bayer" base variant (in_channels=4, funit=32, linear Rec.2020 target)
+  - url: "https://drive.google.com/file/d/1dFTLeljWi9wwojcZUsam8bE31JdYy3oM/view?usp=drive_link"
+    path: "temp/rawdenoise-nind/denoiser_bayer2prgb_utnet2.pt"
+  # DenoiserTrainingProfiledRGBToProfiledRGB_3ch_2024-10-09-prgb_ms-ssim_mgout_notrans_valeither_-1
+  # canonical "Linear RGB" base variant (in_channels=3, funit=32, lin-Rec.2020 in/out)
+  - url: "https://drive.google.com/file/d/1kH8tK4RN_edak3r_VIAhCzPa6CNsuTYC/view?usp=drive_link"
+    path: "temp/rawdenoise-nind/denoiser_prgb2prgb_utnet2.pt"
+
+model_card:
+  long_description: "UtNet2 raw denoisers trained on the Raw Natural Image Noise Dataset (RawNIND). Bundles two variants: Bayer — 4-channel packed Bayer input, joint denoise + demosaic, outputs linear Rec.2020; Linear – 3-channel linear Rec.2020 input, denoise only, outputs linear Rec.2020 (for X-Trans, Foveon, or any already-demosaicked pipeline)"
+  scope: "raw and linear-RGB image denoising"
+  author: "Benoit Brummer (University of Louvain)"
+  source: "https://github.com/trougnouf/rawnind_jddc"
+  paper: "https://arxiv.org/abs/2501.08924"
+  license: "GPL-3.0"
+  training_data: "RawNIND – real-world raw noise/clean pairs photographed by authors, published on Wikimedia Commons and UCLouvain Dataverse"
+  training_data_license: "CC BY 4.0 / CC0 (per-image, Wikimedia Commons)"
+  notes: "all components publicly available under open licenses"
+
+convert:
+  - script: convert.py
+    args:
+      checkpoint: "{temp}/denoiser_bayer2prgb_utnet2.pt"
+      output: "{output}/model_bayer.onnx"
+      in_channels: 4
+      funit: 32
+      activation: "LeakyReLU"
+      opset: 17
+      fp16: false
+  - script: convert.py
+    args:
+      checkpoint: "{temp}/denoiser_prgb2prgb_utnet2.pt"
+      output: "{output}/model_linear.onnx"
+      in_channels: 3
+      funit: 32
+      activation: "LeakyReLU"
+      opset: 17
+      fp16: false
