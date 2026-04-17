@@ -39,11 +39,18 @@ def run_inference(model_path, image_path, output_path, max_size=1024):
     arr = np.array(image).astype(np.float32) / 255.0
     arr = arr.transpose(2, 0, 1)[np.newaxis]
 
-    # Pad all edges to hide UNet border artifacts, then align to multiple of 16
+    # Pad all edges to hide UtNet border artifacts, then align so total size
+    # satisfies N ≡ 8 (mod 16) required by the UtNet architecture.
     _, _, h, w = arr.shape
     border = 16
-    ph = border + (16 - (h + 2 * border) % 16) % 16
-    pw = border + (16 - (w + 2 * border) % 16) % 16
+
+    def pad_after(size):
+        total = size + 2 * border
+        extra = (8 - total % 16) % 16
+        return border + extra
+
+    ph = pad_after(h)
+    pw = pad_after(w)
     arr = np.pad(arr, ((0, 0), (0, 0), (border, ph), (border, pw)), mode="reflect")
     print(f"  Padded to:     {arr.shape[3]}x{arr.shape[2]} (border={border})")
 

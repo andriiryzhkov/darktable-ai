@@ -14,7 +14,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DTAI_ROOT = os.environ.get("DTAI_ROOT", os.path.join(SCRIPT_DIR, "../.."))
 sys.path.insert(0, os.path.join(DTAI_ROOT, "vendor", "nind-denoise", "src"))
 
-from nind_denoise.networks.ThirdPartyNets import UNet
+from nind_denoise.networks.UtNet import UtNet
 
 try:
     import onnxconverter_common
@@ -24,7 +24,7 @@ except ImportError:
 
 
 def load_model(checkpoint_path):
-    model = UNet(n_channels=3, n_classes=3)
+    model = UtNet()
     state_dict = torch.load(checkpoint_path, map_location="cpu", weights_only=True)
     model.load_state_dict(state_dict, strict=True)
     model.eval()
@@ -84,16 +84,17 @@ def export_to_onnx(model, output_path, input_height=256, input_width=256,
         print(f"FP16 model saved to {output_path}")
 
 
-def convert(checkpoint, output="model.onnx", height=256, width=256,
-            opset=11, fp16=False):
+def convert(checkpoint, output="model.onnx", height=1016, width=1016,
+            dynamic_shapes=True, opset=11, fp16=False):
     """Entry point for programmatic conversion."""
     os.makedirs(os.path.dirname(output) or ".", exist_ok=True)
 
-    print("Loading NIND UNet model...")
+    print("Loading NIND UtNet model...")
     model = load_model(checkpoint)
 
     print("Exporting to ONNX...")
     export_to_onnx(model, output, input_height=height, input_width=width,
+                   dynamic_shapes=dynamic_shapes,
                    opset_version=opset, fp16=fp16)
 
 
