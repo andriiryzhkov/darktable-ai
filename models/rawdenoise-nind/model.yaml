@@ -2,7 +2,7 @@ id: rawdenoise-nind
 name: "raw denoise nind"
 description: "UtNet2 raw denoiser trained on RawNIND (Bayer + linear Rec.2020 variants)"
 task: rawdenoise
-version: "0.1"
+version: "1.0"
 arch: utnet2
 tiling: true
 type: multi
@@ -14,14 +14,10 @@ attributes:
   variants:
     bayer:
       onnx: model_bayer.onnx
-      in_channels: 4
       input_kind: packed_bayer       # 4ch R/G1/G2/B, half-resolution, pre-demosaic
-      output_color_space: linear_rec2020
     linear:
       onnx: model_linear.onnx
-      in_channels: 3
       input_kind: lin_rec2020         # already demosaicked (X-Trans, Foveon, etc.)
-      output_color_space: linear_rec2020
 
 repo:
   submodule: vendor/rawnind_jddc
@@ -37,9 +33,9 @@ checkpoints:
     path: "temp/rawdenoise-nind/denoiser_prgb2prgb_utnet2.pt"
 
 model_card:
-  long_description: "UtNet2 raw denoisers trained on the Raw Natural Image Noise Dataset (RawNIND). Bundles two variants: Bayer — 4-channel packed Bayer input, joint denoise + demosaic, outputs linear Rec.2020; Linear – 3-channel linear Rec.2020 input, denoise only, outputs linear Rec.2020 (for X-Trans, Foveon, or any already-demosaicked pipeline)"
+  long_description: "UtNet2 raw denoisers trained on the Raw Natural Image Noise Dataset (RawNIND). Bundles two variants: Bayer and Linear (for X-Trans, Foveon, or any already-demosaicked pipeline)"
   scope: "raw and linear-RGB image denoising"
-  author: "Benoit Brummer (University of Louvain)"
+  author: "Benoit Brummer (UCLouvain)"
   source: "https://github.com/trougnouf/rawnind_jddc"
   paper: "https://arxiv.org/abs/2501.08924"
   license: "GPL-3.0"
