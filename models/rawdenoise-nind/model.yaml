@@ -9,6 +9,7 @@ type: multi
 dep_group: rawnind
 
 attributes:
+  coreml_cpu_only: true
   input_sizes: [2048, 1536, 1024, 768, 512, 384, 256]
   variants:
     bayer:
