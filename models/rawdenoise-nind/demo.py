@@ -147,15 +147,71 @@ def _match_gain(other: np.ndarray, anchor: np.ndarray) -> np.ndarray:
     return other * (anchor_mean / other_mean)
 
 
-def _crop_mod16(arr: np.ndarray) -> np.ndarray:
-    """Crop a (1, C, H, W) tensor so H and W are multiples of 16 (UtNet2 req)."""
-    _, _, h, w = arr.shape
-    h16 = (h // 16) * 16
-    w16 = (w // 16) * 16
-    if (h16, w16) != (h, w):
-        arr = arr[:, :, :h16, :w16]
-        print(f"  Cropped to:    {arr.shape[3]}x{arr.shape[2]} (mod 16)")
-    return arr
+def _run_tiled(session, input_name, input_is_fp16: bool,
+               arr: np.ndarray,
+               tile_size: int = 256, overlap: int = 32,
+               scale: int = 1) -> np.ndarray:
+    """Tiled inference with mirror-padded edges and overlap-trimmed stitching.
+
+    `arr` is (1, C_in, H, W) float32; H and W need NOT be multiples of 16
+    (each tile is T × T and T is constrained to be a multiple of 16).
+    Returns (1, C_out, H*scale, W*scale) float32.
+
+    Matches the darktable C code: step = T - 2·overlap, each tile reads a
+    T × T window with `overlap` border on each side (mirror-padded at the
+    image boundary), and only the core (step × step) region of each tile
+    is written to the output — which keeps tile seams seamless.
+
+    Picked T=256 (mod 16) and overlap=32 by default: on a 24MP Bayer raw
+    the peak ORT working set stays well under 1 GB (vs. > 10 GB for a
+    full-image pass), so the demo runs on a GitHub 7 GB runner.
+    """
+    _, _, H, W = arr.shape
+    T = tile_size
+    O = overlap
+    S = scale
+    step = T - 2 * O
+    assert step > 0, "tile_size must exceed 2 * overlap"
+    assert T % 16 == 0, "tile_size must be a multiple of 16"
+
+    n_y = (H + step - 1) // step
+    n_x = (W + step - 1) // step
+
+    # mirror-pad so every tile read stays inside `padded` regardless of
+    # where the last tile ends up (pad_after is at least O; can be more
+    # when H/W aren't divisible by step)
+    pad_before = O
+    pad_after_y = max(O, (n_y - 1) * step + T - H - O)
+    pad_after_x = max(O, (n_x - 1) * step + T - W - O)
+    padded = np.pad(
+        arr,
+        ((0, 0), (0, 0), (pad_before, pad_after_y), (pad_before, pad_after_x)),
+        mode="reflect",
+    )
+
+    out = None  # shape known only after the first tile (C_out from the model)
+    for ty in range(n_y):
+        core_y = ty * step
+        core_h = min(step, H - core_y)
+        for tx in range(n_x):
+            core_x = tx * step
+            core_w = min(step, W - core_x)
+            tile = padded[:, :, core_y:core_y + T, core_x:core_x + T]
+            tile = np.ascontiguousarray(tile)
+            if input_is_fp16:
+                tile = tile.astype(np.float16)
+            [tile_out] = session.run(None, {input_name: tile})
+            if out is None:
+                c_out = tile_out.shape[1]
+                out = np.zeros((1, c_out, H * S, W * S), dtype=np.float32)
+            # strip the overlap border and blit the core region
+            out[:, :,
+                core_y * S:(core_y + core_h) * S,
+                core_x * S:(core_x + core_w) * S] = \
+                tile_out[:, :,
+                         O * S:(O + core_h) * S,
+                         O * S:(O + core_w) * S].astype(np.float32)
+    return out
 
 
 def _load_session(model_path: str):
@@ -195,7 +251,8 @@ def _save(output_path: str, rgb_hwc: np.ndarray):
 # Bayer inference pipeline
 # ---------------------------------------------------------------------------
 
-def run_bayer(model_path: str, image_path: str, output_path: str) -> None:
+def run_bayer(model_path: str, image_path: str, output_path: str,
+              tile_size: int = 256, overlap: int = 32) -> None:
     t0 = time.perf_counter()
     session, input_name, input_is_fp16 = _load_session(model_path)
 
@@ -203,13 +260,11 @@ def run_bayer(model_path: str, image_path: str, output_path: str) -> None:
     packed, rgb_xyz_matrix = load_raw_as_packed_bayer(image_path)
     print(f"  Packed shape:  {packed.shape} (C, H, W)")
 
-    arr = packed[np.newaxis]
-    arr = _crop_mod16(arr)
-    if input_is_fp16:
-        arr = arr.astype(np.float16)
+    arr = packed[np.newaxis].astype(np.float32)
 
-    print("Running inference (Bayer)...")
-    [output] = session.run(None, {input_name: arr})
+    print(f"Running tiled inference (Bayer, T={tile_size}, overlap={overlap})...")
+    output = _run_tiled(session, input_name, input_is_fp16, arr,
+                        tile_size=tile_size, overlap=overlap, scale=2)
 
     # Bayer model outputs camRGB at an arbitrary learned scale (training used
     # match_gain=output). Gain-match against the input mosaic, then convert
@@ -228,7 +283,8 @@ def run_bayer(model_path: str, image_path: str, output_path: str) -> None:
 # Linear (prgb2prgb) inference pipeline
 # ---------------------------------------------------------------------------
 
-def run_linear(model_path: str, image_path: str, output_path: str) -> None:
+def run_linear(model_path: str, image_path: str, output_path: str,
+               tile_size: int = 256, overlap: int = 32) -> None:
     t0 = time.perf_counter()
     session, input_name, input_is_fp16 = _load_session(model_path)
 
@@ -236,13 +292,11 @@ def run_linear(model_path: str, image_path: str, output_path: str) -> None:
     rec2020_in = load_raw_as_lin_rec2020(image_path)
     print(f"  Demosaicked:   {rec2020_in.shape} (C, H, W)")
 
-    arr = rec2020_in[np.newaxis]
-    arr = _crop_mod16(arr)
-    if input_is_fp16:
-        arr = arr.astype(np.float16)
+    arr = rec2020_in[np.newaxis].astype(np.float32)
 
-    print("Running inference (linear)...")
-    [output] = session.run(None, {input_name: arr})
+    print(f"Running tiled inference (linear, T={tile_size}, overlap={overlap})...")
+    output = _run_tiled(session, input_name, input_is_fp16, arr,
+                        tile_size=tile_size, overlap=overlap, scale=1)
 
     # Like the Bayer variant, the network output is at an arbitrary learned
     # scale (training also used match_gain=output). Gain-match against the
@@ -268,19 +322,25 @@ def _dispatch_variant(image_path: str) -> str:
         return "bayer" if raw.raw_pattern.shape == (2, 2) else "linear"
 
 
-def demo(model_dir, image, output, variant=None, **kwargs):
+def demo(model_dir, image, output, variant=None,
+         tile_size: int = 256, overlap: int = 32, **kwargs):
     """Entry point invoked by the framework for type=multi models.
 
     If `variant` is not given, auto-dispatch based on sensor pattern.
+    `tile_size` and `overlap` are in packed-space pixels for the Bayer
+    variant and in sensor-space pixels for the linear variant (both
+    equivalently: the model's own input spatial units).
     """
     os.makedirs(os.path.dirname(output) or ".", exist_ok=True)
     if variant is None:
         variant = _dispatch_variant(image)
 
     if variant == "bayer":
-        run_bayer(os.path.join(model_dir, "model_bayer.onnx"), image, output)
+        run_bayer(os.path.join(model_dir, "model_bayer.onnx"), image, output,
+                  tile_size=tile_size, overlap=overlap)
     elif variant == "linear":
-        run_linear(os.path.join(model_dir, "model_linear.onnx"), image, output)
+        run_linear(os.path.join(model_dir, "model_linear.onnx"), image, output,
+                   tile_size=tile_size, overlap=overlap)
     else:
         raise ValueError(f"Unknown variant: {variant!r} (expected 'bayer' or 'linear')")
 
