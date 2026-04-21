@@ -17,7 +17,7 @@ checkpoints:
 model_card:
   long_description: "Image denoiser trained on the Natural Image Noise Dataset (NIND) from Wikimedia Commons"
   scope: "single-image denoising"
-  author: "Benoit Brummer (University of Louvain)"
+  author: "Benoit Brummer (UCLouvain)"
   source: "https://github.com/trougnouf/nind-denoise"
   paper: "https://arxiv.org/abs/1906.00270"
   license: "GPL-3.0"

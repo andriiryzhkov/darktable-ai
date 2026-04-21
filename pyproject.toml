@@ -40,6 +40,16 @@ nind = [
     {include-group = "core"},
     "onnxconverter-common",
 ]
+rawnind = [
+    {include-group = "core"},
+    "onnxconverter-common",
+    "rawpy",
+    "tifffile",
+    "configargparse",
+    "pytorch-msssim",
+    "colour-science",
+    "ptflops",
+]
 segnext = [
     {include-group = "core"},
     "mmcv>=2.2.0",
@@ -64,6 +74,7 @@ openclip = [
 all-models = [
     {include-group = "nafnet"},
     {include-group = "nind"},
+    {include-group = "rawnind"},
     {include-group = "segnext"},
     {include-group = "bsrgan"},
     {include-group = "sam21"},
