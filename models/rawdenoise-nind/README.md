@@ -4,14 +4,18 @@ Two UtNet2 raw denoisers trained on the Raw Natural Image Noise Dataset
 (RawNIND). Bundled into a single `type: multi` package with sensor-based
 auto-dispatch.
 
-| Variant        | Input                        | Output                 | Use for                          |
-|----------------|------------------------------|------------------------|----------------------------------|
-| `model_bayer`  | 4ch packed Bayer [R,G1,G2,B] | 3ch linear Rec.2020    | Bayer sensors (pre-demosaic)     |
-| `model_linear` | 3ch linear Rec.2020          | 3ch linear Rec.2020    | X-Trans, Foveon, post-demosaic   |
+| Variant        | Input                        | Output                                   | Use for                          |
+|----------------|------------------------------|------------------------------------------|----------------------------------|
+| `model_bayer`  | 4ch packed Bayer [R,G1,G2,B] | 3ch camRGB at 2× spatial, arbitrary gain | Bayer sensors (pre-demosaic)     |
+| `model_linear` | 3ch linear Rec.2020          | 3ch linear Rec.2020, arbitrary gain      | X-Trans, Foveon, post-demosaic   |
 
 Both models perform the same denoising task; the Bayer variant additionally
-does the demosaic (via a PixelShuffle output head that 2× upsamples). The
-linear variant is a pure 3→3 denoiser in profiled-RGB space.
+does the demosaic (via a PixelShuffle output head that 2× upsamples) and
+emits its output in the camera's native RGB space — the ColorMatrix is not
+baked into the graph, so consumers must apply it after inference to reach
+linear Rec.2020. The linear variant is a pure 3→3 denoiser, in and out of
+linear Rec.2020. Both variants output at an arbitrary learned gain and
+require a scalar gain-match against the input mean before use.
 
 ## Source
 
