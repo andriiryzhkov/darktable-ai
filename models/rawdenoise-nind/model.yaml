@@ -14,10 +14,24 @@ attributes:
   variants:
     bayer:
       onnx: model_bayer.onnx
-      input_kind: packed_bayer       # 4ch R/G1/G2/B, half-resolution, pre-demosaic
+      # contract label: pins the preprocessing the restore loader will
+      # apply. see src/common/ai/restore.h for the full bayer_v1
+      # contract (4ch R/G1/G2/B packed half-res, WB+black-level normalized)
+      input_kind: bayer_v1
+      # policy knobs — all at their v1 defaults; made explicit so the
+      # manifest documents what preprocessing the model expects
+      wb_norm: daylight        # training distribution; inverted post-inference
+      output_scale: match_gain # UtNet2 output scale is arbitrary
     linear:
       onnx: model_linear.onnx
-      input_kind: lin_rec2020         # already demosaicked (X-Trans, Foveon, etc.)
+      # 3ch full-res lin_rec2020, for pipelines with external demosaic
+      # (X-Trans, Foveon, etc.). see linear_v1 contract in
+      # src/common/ai/restore.h
+      input_kind: linear_v1
+      input_colorspace: lin_rec2020
+      wb_norm: as_shot         # beats daylight for re-imported DNG tonemap match
+      output_scale: match_gain # per-channel mean-match; UtNet2 output scale is arbitrary
+      target_mean: 0.30        # pre-inference exposure boost (training brightness)
 
 repo:
   submodule: vendor/rawnind_jddc
