@@ -20,8 +20,10 @@ attributes:
       input_kind: bayer_v1
       # policy knobs — all at their v1 defaults; made explicit so the
       # manifest documents what preprocessing the model expects
-      wb_norm: daylight        # training distribution; inverted post-inference
-      output_scale: match_gain # UtNet2 output scale is arbitrary
+      bayer_orientation: force_rggb   # extract from R origin so ch0=R on any CFA
+      edge_pad: mirror_cropped        # reflect in the RGGB-forced frame
+      wb_norm: daylight               # training distribution; inverted post-inference
+      output_scale: match_gain        # UtNet2 output scale is arbitrary
     linear:
       onnx: model_linear.onnx
       # 3ch full-res lin_rec2020, for pipelines with external demosaic
