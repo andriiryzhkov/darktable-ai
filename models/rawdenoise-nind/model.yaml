@@ -14,37 +14,36 @@ attributes:
   variants:
     bayer:
       onnx: model_bayer.onnx
-      # contract label: pins the preprocessing the restore loader will
-      # apply. see src/common/ai/restore.h for the full bayer_v1
-      # contract (4ch R/G1/G2/B packed half-res, WB+black-level normalized)
+      # bayer_v1 contract — see src/common/ai/restore.h.
+      # policy knobs match upstream RawNIND inference
       input_kind: bayer_v1
-      # policy knobs — all at their v1 defaults; made explicit so the
-      # manifest documents what preprocessing the model expects
-      bayer_orientation: force_rggb   # extract from R origin so ch0=R on any CFA
+      bayer_orientation: force_rggb   # ch0 = R on any CFA
       edge_pad: mirror_cropped        # reflect in the RGGB-forced frame
-      wb_norm: daylight               # training distribution; inverted post-inference
-      output_scale: match_gain        # UtNet2 output scale is arbitrary
+      wb_norm: none                   # do NOT WB before inference
+      output_scale: match_gain        # scalar mean ratio
     linear:
       onnx: model_linear.onnx
-      # 3ch full-res lin_rec2020, for pipelines with external demosaic
-      # (X-Trans, Foveon, etc.). see linear_v1 contract in
-      # src/common/ai/restore.h
+      # linear_v1 contract — see src/common/ai/restore.h.
+      # 3ch full-res lin_rec2020 (X-Trans, Foveon, external demosaic)
       input_kind: linear_v1
       input_colorspace: lin_rec2020
-      wb_norm: as_shot         # beats daylight for re-imported DNG tonemap match
-      output_scale: match_gain # per-channel mean-match; UtNet2 output scale is arbitrary
-      target_mean: 0.30        # pre-inference exposure boost (training brightness)
+      wb_norm: none            # do NOT WB before inference
+      output_scale: match_gain # scalar mean ratio
+      target_mean: null        # disable exposure boost
 
 repo:
   submodule: vendor/rawnind_jddc
 
 checkpoints:
-  # DenoiserTrainingBayerToProfiledRGB_4ch_2024-02-21-bayer_ms-ssim_mgout_notrans_valeither_-4
-  # canonical "Bayer" base variant (in_channels=4, funit=32, linear Rec.2020 target)
-  - url: "https://drive.google.com/file/d/1dFTLeljWi9wwojcZUsam8bE31JdYy3oM/view?usp=drive_link"
+  # DenoiserTrainingBayerToProfiledRGB_4ch_2024-03-11-bayer_ms-ssim_mgout_preupsample_notrans_valeither_-2
+  # preupsample variant — needs `preupsample: true` in convert step
+  - url: "https://drive.google.com/file/d/1xgHafgqRC8ZEGbbXtduSlx9WunD0mgS_/view?usp=drive_link"
     path: "temp/rawdenoise-nind/denoiser_bayer2prgb_utnet2.pt"
+  # DenoiserTrainingBayerToProfiledRGB_4ch_2024-02-21-bayer_ms-ssim_mgout_notrans_valeither_-4
+  # half-res alternative — ~4× faster, marginally lower quality
+  # - url: "https://drive.google.com/file/d/1dFTLeljWi9wwojcZUsam8bE31JdYy3oM/view?usp=drive_link"
+  #   path: "temp/rawdenoise-nind/denoiser_bayer2prgb_utnet2.pt"
   # DenoiserTrainingProfiledRGBToProfiledRGB_3ch_2024-10-09-prgb_ms-ssim_mgout_notrans_valeither_-1
-  # canonical "Linear RGB" base variant (in_channels=3, funit=32, lin-Rec.2020 in/out)
   - url: "https://drive.google.com/file/d/1kH8tK4RN_edak3r_VIAhCzPa6CNsuTYC/view?usp=drive_link"
     path: "temp/rawdenoise-nind/denoiser_prgb2prgb_utnet2.pt"
 
@@ -67,7 +66,7 @@ convert:
       in_channels: 4
       funit: 32
       activation: "LeakyReLU"
-      opset: 17
+      preupsample: true
       fp16: false
   - script: convert.py
     args:
