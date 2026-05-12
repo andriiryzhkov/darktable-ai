@@ -143,7 +143,8 @@ def export_to_onnx(model, output_path, in_channels=4,
 
 def convert(checkpoint, output="model.onnx", in_channels=4, funit=32,
             activation="PReLU", preupsample=False,
-            height=256, width=256, dynamic_shapes=True, opset=17, fp16=False):
+            height=512, width=512, dynamic_shapes=True, opset=20, fp16=False,
+            static=False):
     """Entry point for programmatic conversion."""
     os.makedirs(os.path.dirname(output) or ".", exist_ok=True)
 
@@ -154,7 +155,7 @@ def convert(checkpoint, output="model.onnx", in_channels=4, funit=32,
     print("Exporting to ONNX...")
     export_to_onnx(model, output, in_channels=in_channels,
                    input_height=height, input_width=width,
-                   dynamic_shapes=dynamic_shapes,
+                   dynamic_shapes=dynamic_shapes and not static,
                    opset_version=opset, fp16=fp16)
 
 
@@ -170,13 +171,16 @@ def main():
     parser.add_argument("--width", type=int, default=256)
     parser.add_argument("--opset", type=int, default=17)
     parser.add_argument("--fp16", action="store_true")
+    parser.add_argument("--static", action="store_true",
+                        help="bake input height/width into the graph "
+                             "(disables dynamic shape axes)")
     args = parser.parse_args()
 
     convert(args.checkpoint, args.output,
             in_channels=args.in_channels, funit=args.funit,
             activation=args.activation, preupsample=args.preupsample,
             height=args.height, width=args.width,
-            opset=args.opset, fp16=args.fp16)
+            opset=args.opset, fp16=args.fp16, static=args.static)
 
 
 if __name__ == "__main__":

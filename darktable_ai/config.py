@@ -46,6 +46,7 @@ class ModelConfig:
 
     model_card: dict[str, str] = field(default_factory=dict)
     attributes: dict = field(default_factory=dict)
+    cpu_only: list | dict | None = None
 
     repo: RepoConfig | None = None
     checkpoints: list[Checkpoint] = field(default_factory=list)
@@ -120,6 +121,7 @@ def load_model_config(model_dir: Path, root_dir: Path) -> ModelConfig:
         dep_group=data.get("dep_group", "core"),
         model_card=data.get("model_card", {}),
         attributes=data.get("attributes", {}),
+        cpu_only=data.get("cpu_only"),
         skip=skip,
         repo=repo,
         checkpoints=checkpoints,

@@ -149,7 +149,7 @@ def _match_gain(other: np.ndarray, anchor: np.ndarray) -> np.ndarray:
 
 def _run_tiled(session, input_name, input_is_fp16: bool,
                arr: np.ndarray,
-               tile_size: int = 256, overlap: int = 32,
+               tile_size: int = 512, overlap: int = 64,
                scale: int = 1) -> np.ndarray:
     """Tiled inference with mirror-padded edges and overlap-trimmed stitching.
 
@@ -162,9 +162,8 @@ def _run_tiled(session, input_name, input_is_fp16: bool,
     image boundary), and only the core (step × step) region of each tile
     is written to the output — which keeps tile seams seamless.
 
-    Picked T=256 (mod 16) and overlap=32 by default: on a 24MP Bayer raw
-    the peak ORT working set stays well under 1 GB (vs. > 10 GB for a
-    full-image pass), so the demo runs on a GitHub 7 GB runner.
+    Defaults T=512, overlap=64 match the static-shape ONNX exports (input
+    baked at 512×512) and darktable's OVERLAP_DENOISE constant.
     """
     _, _, H, W = arr.shape
     T = tile_size
@@ -252,7 +251,7 @@ def _save(output_path: str, rgb_hwc: np.ndarray):
 # ---------------------------------------------------------------------------
 
 def run_bayer(model_path: str, image_path: str, output_path: str,
-              tile_size: int = 256, overlap: int = 32) -> None:
+              tile_size: int = 512, overlap: int = 64) -> None:
     t0 = time.perf_counter()
     session, input_name, input_is_fp16 = _load_session(model_path)
 
@@ -284,7 +283,7 @@ def run_bayer(model_path: str, image_path: str, output_path: str,
 # ---------------------------------------------------------------------------
 
 def run_linear(model_path: str, image_path: str, output_path: str,
-               tile_size: int = 256, overlap: int = 32) -> None:
+               tile_size: int = 512, overlap: int = 64) -> None:
     t0 = time.perf_counter()
     session, input_name, input_is_fp16 = _load_session(model_path)
 
@@ -323,13 +322,14 @@ def _dispatch_variant(image_path: str) -> str:
 
 
 def demo(model_dir, image, output, variant=None,
-         tile_size: int = 256, overlap: int = 32, **kwargs):
+         tile_size: int = 512, overlap: int = 64, **kwargs):
     """Entry point invoked by the framework for type=multi models.
 
     If `variant` is not given, auto-dispatch based on sensor pattern.
-    `tile_size` and `overlap` are in packed-space pixels for the Bayer
-    variant and in sensor-space pixels for the linear variant (both
-    equivalently: the model's own input spatial units).
+    `tile_size` is fixed at 512 to match the static-shape ONNX export
+    (input baked at 512×512); `overlap` defaults to 64 to match
+    darktable's OVERLAP_DENOISE constant. Both are in the model's own
+    input spatial units (packed-space for Bayer, sensor-space for linear).
     """
     os.makedirs(os.path.dirname(output) or ".", exist_ok=True)
     if variant is None:
