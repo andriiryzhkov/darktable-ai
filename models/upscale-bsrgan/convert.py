@@ -95,14 +95,13 @@ def export_to_onnx(model, output_path, scale, height=256, width=256,
                    dynamic_shapes=True, opset_version=20, fp16=False):
     os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
 
-    dummy_input = torch.randn(1, 3, height, width)
+    import onnx
 
-    dynamic_axes = None
-    if dynamic_shapes:
-        dynamic_axes = {
-            'input':  {0: 'batch', 2: 'height', 3: 'width'},
-            'output': {0: 'batch', 2: 'height', 3: 'width'},
-        }
+    # Trace at a small dummy + dynamic_axes (cheap), then bake static
+    # dims post-export if requested. Avoids OOM on BSRGAN's 23-RRDB
+    # trace at the deployment dim on CI.
+    trace_dim = 64
+    dummy_input = torch.randn(1, 3, trace_dim, trace_dim)
 
     torch.onnx.export(
         model,
@@ -113,15 +112,29 @@ def export_to_onnx(model, output_path, scale, height=256, width=256,
         do_constant_folding=True,
         input_names=['input'],
         output_names=['output'],
-        dynamic_axes=dynamic_axes,
+        dynamic_axes={
+            'input':  {0: 'batch', 2: 'height', 3: 'width'},
+            'output': {0: 'batch', 2: 'height', 3: 'width'},
+        },
         verbose=False,
     )
     print(f"Exported: {output_path}")
 
-    import onnx
     onnx_model = onnx.load(output_path)
     onnx.checker.check_model(onnx_model)
     print("  ONNX verification passed.")
+
+    if not dynamic_shapes:
+        from onnx.tools import update_model_dims
+        from onnx import shape_inference
+        onnx_model = update_model_dims.update_inputs_outputs_dims(
+            onnx_model,
+            {'input':  [1, 3, height, width]},
+            {'output': [1, 3, height * scale, width * scale]})
+        onnx_model = shape_inference.infer_shapes(onnx_model)
+        onnx.save(onnx_model, output_path)
+        print(f"  Static dims baked: "
+              f"{height}x{width} -> {height * scale}x{width * scale}")
 
     if fp16:
         if not HAS_ONNX_CONVERTER:
