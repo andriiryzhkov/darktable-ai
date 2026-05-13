@@ -43,12 +43,41 @@ scale; the demo rescales against the input mean at inference.
 
 ## ONNX Models
 
-| File              | Input                            | Output                           |
-|-------------------|----------------------------------|----------------------------------|
-| `model_bayer.onnx`  | `input` — float32 [1, 4, H, W]   | `output` — float32 [1, 3, 2H, 2W] |
-| `model_linear.onnx` | `input` — float32 [1, 3, H, W]   | `output` — float32 [1, 3, H, W]  |
+| File                | Input                              | Output                                |
+|---------------------|------------------------------------|---------------------------------------|
+| `model_bayer.onnx`  | `input` — float32 [1, 4, 512, 512] | `output` — float32 [1, 3, 1024, 1024] |
+| `model_linear.onnx` | `input` — float32 [1, 3, 512, 512] | `output` — float32 [1, 3, 512, 512]   |
 
-H and W must be divisible by 16.
+Both variants are exported with static input shapes baked at 512×512 (opset
+20, FP32). Callers must tile at exactly 512×512 — darktable reads the
+per-variant tile size from the manifest:
+
+```yaml
+attributes:
+  input_sizes: [512]
+  model_bayer:
+    input_kind: bayer_v1
+    bayer_orientation: force_rggb
+    edge_pad: mirror_cropped
+    wb_norm: none
+    output_scale: match_gain
+  model_linear:
+    input_kind: linear_v1
+    input_colorspace: lin_rec2020
+    wb_norm: none
+    output_scale: match_gain
+    target_mean: null
+```
+
+The Bayer variant is pinned to the CoreML CPU compute units via the
+top-level `cpu_only` block — its intermediate activations overflow FP16
+on Apple's ANE / GPU and produce NaN/Inf output. The linear variant has
+no such issue and runs on the user's configured EP unchanged:
+
+```yaml
+cpu_only:
+  model_bayer: [coreml]
+```
 
 ## Demo pipeline
 

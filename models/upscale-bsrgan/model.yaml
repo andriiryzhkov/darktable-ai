@@ -3,9 +3,18 @@ name: "upscale bsrgan"
 description: "BSRGAN 2x and 4x blind super-resolution"
 task: upscale
 version: "1.0"
+backend: onnx
 tiling: true
 type: multi
 dep_group: bsrgan
+
+attributes:
+  # per-model tile size: x2 can use a larger input since output is only 2x,
+  # x4 stays smaller because output is 4x the input dimension
+  model_x2:
+    input_sizes: [512]
+  model_x4:
+    input_sizes: [256]
 
 model_card:
   long_description: "BSRGAN blind image super-resolution using practical degradation model; includes both 2x and 4x upscaling variants with RRDBNet architecture"
@@ -30,10 +39,18 @@ convert:
       checkpoint: "{temp}/BSRGAN.pth"
       output: "{output}/model_x4.onnx"
       scale: 4
-      opset: 17
+      opset: 20
+      height: 256
+      width: 256
+      static: true
+      fp16: false
   - script: convert.py
     args:
       checkpoint: "{temp}/BSRGANx2.pth"
       output: "{output}/model_x2.onnx"
       scale: 2
-      opset: 17
+      opset: 20
+      height: 512
+      width: 512
+      static: true
+      fp16: false

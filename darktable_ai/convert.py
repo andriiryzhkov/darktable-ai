@@ -52,6 +52,9 @@ def generate_config_json(config: ModelConfig) -> None:
     if config.attributes:
         data["attributes"] = config.attributes
 
+    if config.cpu_only is not None:
+        data["cpu_only"] = config.cpu_only
+
     config_file.write_text(json.dumps(data, indent=4, ensure_ascii=False) + "\n")
     print(f"  Generated: {config_file}")
 

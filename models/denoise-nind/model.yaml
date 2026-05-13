@@ -3,9 +3,13 @@ name: "denoise nind"
 description: "UNet denoiser trained on NIND dataset"
 task: denoise
 version: "1.0"
+backend: onnx
 tiling: true
 type: single
 dep_group: nind
+
+attributes:
+  input_sizes: [768]
 
 repo:
   submodule: vendor/nind-denoise
@@ -30,5 +34,8 @@ convert:
     args:
       checkpoint: "{temp}/generator_280.pt"
       output: "{output}/model.onnx"
-      opset: 17
+      opset: 20
+      height: 768
+      width: 768
+      static: true
       fp16: false
