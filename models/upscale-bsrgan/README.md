@@ -18,19 +18,36 @@ followed by convolution (1 step for 2x, 2 steps for 4x).
 
 ## ONNX Models
 
-| Property    | model_x2.onnx                       | model_x4.onnx                       |
-|-------------|--------------------------------------|--------------------------------------|
-| Input       | `input` — float32 [1, 3, H, W]      | `input` — float32 [1, 3, H, W]      |
-| Output      | `output` — float32 [1, 3, 2H, 2W]   | `output` — float32 [1, 3, 4H, 4W]   |
-| Resolution  | Dynamic (any H, W)                   | Dynamic (any H, W)                   |
-| Normalize   | [0, 1] range (divide by 255)         | [0, 1] range (divide by 255)         |
-| Tiling      | Yes                                  | Yes                                  |
+| Property   | model_x2.onnx                        | model_x4.onnx                          |
+|------------|--------------------------------------|----------------------------------------|
+| Input      | `input` — float32 [1, 3, 512, 512]   | `input` — float32 [1, 3, 256, 256]     |
+| Output     | `output` — float32 [1, 3, 1024, 1024]| `output` — float32 [1, 3, 1024, 1024]  |
+| Resolution | Static, baked at 512×512             | Static, baked at 256×256               |
+| Opset      | 20                                   | 20                                     |
+| Normalize  | [0, 1] range (divide by 255)         | [0, 1] range (divide by 255)           |
+| Tiling     | Yes (`model_x2.input_sizes: [512]`)  | Yes (`model_x4.input_sizes: [256]`)    |
+
+Both variants produce a 1024×1024 output tile — x2 from a 512×512 input,
+x4 from a 256×256 input. Per-stem tile sizes are declared in the manifest
+so darktable picks the right size for each variant at runtime:
+
+```yaml
+attributes:
+  model_x2:
+    input_sizes: [512]
+  model_x4:
+    input_sizes: [256]
+```
 
 ## Notes
 
 - Input and output are both RGB images in [0, 1] range.
 - Output should be clipped to [0, 1] before converting back to uint8.
-- Exported with FP32 precision.
+- Exported with FP32 precision (FP16 via `--fp16` is supported but off
+  by default).
+- Inputs are baked into the graph so JIT-compiling EPs (CoreML,
+  MIGraphX) only pay the compile cost once. Callers must tile at
+  exactly the declared size.
 - Architecture is inlined in convert.py (no repo clone needed).
 
 ## Selection Criteria
