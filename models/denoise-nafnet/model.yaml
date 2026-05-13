@@ -4,11 +4,13 @@ description: "NAFNet denoiser trained on SIDD dataset"
 task: denoise
 version: "1.0"
 arch: nafnet
+backend: onnx
 tiling: true
 type: single
 dep_group: nafnet
 
 attributes:
+  input_sizes: [768]
   shadow_boost: true
 
 model_card:
@@ -35,5 +37,8 @@ convert:
       config: "{repo}/options/test/SIDD/NAFNet-width32.yml"
       checkpoint: "{temp}/NAFNet-SIDD-width32.pth"
       output: "{output}/model.onnx"
-      opset: 17
+      opset: 20
+      height: 768
+      width: 768
+      static: true
       fp16: false

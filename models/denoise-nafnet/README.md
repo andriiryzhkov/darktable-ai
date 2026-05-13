@@ -19,17 +19,23 @@ channel widths [32, 64, 128, 256], 12 middle blocks.
 | Property    | Value                                     |
 |-------------|-------------------------------------------|
 | File        | `model.onnx`                              |
-| Input       | `input` — float32 [1, 3, H, W]           |
-| Output      | `output` — float32 [1, 3, H, W]          |
-| Resolution  | Dynamic (any H, W)                        |
+| Input       | `input` — float32 [1, 3, 768, 768]        |
+| Output      | `output` — float32 [1, 3, 768, 768]       |
+| Resolution  | Static, baked at 768×768                  |
+| Opset       | 20                                        |
 | Normalize   | [0, 1] range (divide by 255)              |
-| Tiling      | Yes                                       |
+| Tiling      | Yes (`attributes.input_sizes: [768]`)     |
 
 ## Notes
 
 - Input and output are both RGB images in [0, 1] range.
 - Output should be clipped to [0, 1] before converting back to uint8.
-- Exported with FP16 precision.
+- Exported with FP32 precision (FP16 via `--fp16` is supported but off
+  by default).
+- The 768×768 input is baked into the graph so JIT-compiling EPs
+  (CoreML, MIGraphX) only pay the compile cost once. Callers must
+  tile at exactly this size; darktable reads `input_sizes` from the
+  manifest and locks the runtime tile size accordingly.
 
 ## Selection Criteria
 
