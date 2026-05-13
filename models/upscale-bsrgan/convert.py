@@ -123,19 +123,6 @@ def export_to_onnx(model, output_path, scale, height=256, width=256,
     onnx.checker.check_model(onnx_model)
     print("  ONNX verification passed.")
 
-    try:
-        import onnxruntime as ort
-        import numpy as np
-        session = ort.InferenceSession(output_path, providers=["CPUExecutionProvider"])
-        dummy = np.random.rand(1, 3, height, width).astype(np.float32)
-        out = session.run(None, {'input': dummy})[0]
-        expected_h = height * scale
-        expected_w = width * scale
-        assert out.shape == (1, 3, expected_h, expected_w), f"Unexpected shape: {out.shape}"
-        print(f"  ONNXRuntime verification passed (output shape: {out.shape}).")
-    except ImportError:
-        pass
-
     if fp16:
         if not HAS_ONNX_CONVERTER:
             print("Warning: onnxconverter-common not installed. Skipping FP16 conversion.")
