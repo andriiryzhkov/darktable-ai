@@ -2,12 +2,13 @@ id: denoise-nafnet
 name: "denoise nafnet small"
 description: "NAFNet denoiser trained on SIDD dataset"
 task: denoise
-version: "0.1"
+version: "0.2"
 arch: nafnet
 backend: onnx
 tiling: true
 type: single
 dep_group: nafnet
+coreml_format: mlprogram
 
 attributes:
   input_sizes: [768]

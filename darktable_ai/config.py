@@ -47,6 +47,7 @@ class ModelConfig:
     model_card: dict[str, str] = field(default_factory=dict)
     attributes: dict = field(default_factory=dict)
     cpu_only: list | dict | None = None
+    coreml_format: str | dict | None = None
 
     repo: RepoConfig | None = None
     checkpoints: list[Checkpoint] = field(default_factory=list)
@@ -122,6 +123,7 @@ def load_model_config(model_dir: Path, root_dir: Path) -> ModelConfig:
         model_card=data.get("model_card", {}),
         attributes=data.get("attributes", {}),
         cpu_only=data.get("cpu_only"),
+        coreml_format=data.get("coreml_format"),
         skip=skip,
         repo=repo,
         checkpoints=checkpoints,

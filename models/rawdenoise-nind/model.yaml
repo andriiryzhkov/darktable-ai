@@ -2,14 +2,13 @@ id: rawdenoise-nind
 name: "raw denoise nind"
 description: "UtNet2 raw denoiser trained on RawNIND (Bayer + linear Rec.2020 variants)"
 task: rawdenoise
-version: "0.1"
+version: "0.2"
 arch: utnet2
 backend: onnx
 tiling: true
 type: multi
 dep_group: rawnind
-cpu_only:
-  model_bayer: [coreml]
+coreml_format: mlprogram
 
 attributes:
   input_sizes: [512]

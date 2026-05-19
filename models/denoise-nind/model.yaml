@@ -2,11 +2,12 @@ id: denoise-nind
 name: "denoise nind"
 description: "UNet denoiser trained on NIND dataset"
 task: denoise
-version: "0.1"
+version: "0.2"
 backend: onnx
 tiling: true
 type: single
 dep_group: nind
+coreml_format: mlprogram
 
 attributes:
   input_sizes: [768]
