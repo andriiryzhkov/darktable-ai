@@ -55,6 +55,9 @@ def generate_config_json(config: ModelConfig) -> None:
     if config.cpu_only is not None:
         data["cpu_only"] = config.cpu_only
 
+    if config.coreml_format is not None:
+        data["coreml_format"] = config.coreml_format
+
     config_file.write_text(json.dumps(data, indent=4, ensure_ascii=False) + "\n")
     print(f"  Generated: {config_file}")
 
