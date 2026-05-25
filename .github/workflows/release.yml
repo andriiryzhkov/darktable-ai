@@ -100,12 +100,12 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Generate versions.json
-        run: uv run dtai versions
-
       - uses: actions/download-artifact@v8
         with:
           path: artifacts
+
+      - name: Generate versions.json (with SHAs)
+        run: uv run dtai versions --artifacts-dir artifacts
 
       - name: Resolve version from tag
         id: ver

@@ -201,18 +201,52 @@ def list_models(ctx, as_json):
 
 
 @main.command("versions")
+@click.option(
+    "--artifacts-dir",
+    type=click.Path(exists=True, file_okay=False, path_type=Path),
+    default=None,
+    help="Directory containing built .dtmodel artifacts; if provided, "
+    "SHA256 digests for each model are included in the output. "
+    "Accepts both <artifacts-dir>/<id>/<id>.dtmodel (CI layout from "
+    "actions/download-artifact) and the flat <artifacts-dir>/<id>.dtmodel "
+    "layout (local `dtai package` output).",
+)
 @click.pass_context
-def versions(ctx):
-    """Generate versions.json from model.yaml files."""
+def versions(ctx, artifacts_dir):
+    """Generate versions.json from model.yaml files.
+
+    When --artifacts-dir is provided, the output additionally carries a
+    top-level "sha256" object mapping model id to "sha256:HEX". The
+    consumer (darktable) reads this and skips a per-asset GitHub API call
+    that would otherwise cost one rate-limited request per downloaded
+    model.
+    """
+    import hashlib
+
     root = _get_root(ctx)
-    models = discover_models(root)
-    data = {
-        "models": {
-            m.id: m.version
-            for m in sorted(models, key=lambda m: m.id)
-            if not m.skip
-        }
-    }
+    models = [m for m in discover_models(root) if not m.skip]
+    models.sort(key=lambda m: m.id)
+
+    entries: dict[str, dict] = {m.id: {"version": m.version} for m in models}
+
+    if artifacts_dir is not None:
+        for m in models:
+            # accept both nested (CI: actions/download-artifact) and flat
+            # (local: `dtai package` output) layouts
+            nested = artifacts_dir / m.id / f"{m.id}.dtmodel"
+            flat = artifacts_dir / f"{m.id}.dtmodel"
+            path = nested if nested.is_file() else flat
+            if not path.is_file():
+                click.echo(f"Warning: artifact missing for {m.id}: {nested} or {flat}", err=True)
+                continue
+            h = hashlib.sha256()
+            with open(path, "rb") as fh:
+                for chunk in iter(lambda: fh.read(1 << 20), b""):
+                    h.update(chunk)
+            entries[m.id]["sha256"] = f"sha256:{h.hexdigest()}"
+
+    data = {"models": entries}
+
     output_path = root / "output" / "versions.json"
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, "w") as f:
