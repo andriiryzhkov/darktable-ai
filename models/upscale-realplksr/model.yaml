@@ -1,0 +1,58 @@
+id: upscale-realplksr
+name: "upscale realplksr"
+description: "RealPLKSR 2x and 4x super-resolution trained on real-world photo degradations"
+task: upscale
+version: "0.1"
+backend: onnx
+tiling: true
+type: multi
+dep_group: realplksr
+
+attributes:
+  # RealPLKSR is a pure-CNN architecture (Partial Large Kernel) with no
+  # window-attention constraints; any input multiple of 4 works. Tile
+  # sizes match BSRGAN's pattern for predictable cost — x2 from 512,
+  # x4 from 256, both emitting 1024x1024 output tiles.
+  model_x2:
+    input_sizes: [512]
+  model_x4:
+    input_sizes: [256]
+
+model_card:
+  long_description: "RealPLKSR (Real-world Partial Large Kernel CNN for Super-Resolution) image upscaler. Enlarges photos by 2x or 4x with realistic detail recovery, designed for typical web/camera image degradations such as compression, noise, and lens blur. Lightweight and fast compared to transformer-based upscalers. Includes both 2x and 4x variants."
+  scope: "image upscaling (2x and 4x super-resolution, real-world degradations)"
+  author: "Dongheon Lee et al. (PLKSR architecture); dslisleedh (RealPLKSR weights)"
+  source: "https://github.com/chaiNNer-org/spandrel"
+  paper: "https://arxiv.org/abs/2404.11848"
+  license: "MIT"
+  training_data: "realistic degradation pipeline (neosr framework)"
+  training_data_license: "see neosr / RealESRGAN degradation references"
+  notes: "weights authored and released by dslisleedh under MIT (same license as PLKSR architecture). Architecture loaded via Spandrel — no need to clone neosr or the PLKSR training framework"
+
+checkpoints:
+  - url: "https://drive.google.com/file/d/1GAdf5VOqYa5ntswT9sYsKKZ2Z7OQp7gO/view"
+    path: "temp/upscale-realplksr/2x_realplksr_mssim_pretrain.pth"
+  - url: "https://drive.google.com/file/d/12ek1vitEporWc5qqaYo6AMy0-RYlRqu8/view"
+    path: "temp/upscale-realplksr/4x_realplksr_mssim_pretrain.pth"
+
+convert:
+  - script: convert.py
+    args:
+      checkpoint: "{temp}/2x_realplksr_mssim_pretrain.pth"
+      output: "{output}/model_x2.onnx"
+      scale: 2
+      opset: 20
+      height: 512
+      width: 512
+      static: true
+      fp16: false
+  - script: convert.py
+    args:
+      checkpoint: "{temp}/4x_realplksr_mssim_pretrain.pth"
+      output: "{output}/model_x4.onnx"
+      scale: 4
+      opset: 20
+      height: 256
+      width: 256
+      static: true
+      fp16: false
