@@ -16,6 +16,7 @@ Currently targets the ONNX backend. The pipeline is designed to support addition
 | [`mask-object-segnext-b2hq`](models/mask-object-segnext-b2hq/README.md)      | mask    | SegNext ViT-B SAx2 HQ for semantic masking      |
 | [`rawdenoise-nind`](models/rawdenoise-nind/README.md)                         | rawdenoise | UtNet2 raw denoiser trained on RawNIND (Bayer + linear Rec.2020 variants) |
 | [`upscale-bsrgan`](models/upscale-bsrgan/README.md)                          | upscale | BSRGAN 2x and 4x blind super-resolution        |
+| [`upscale-dat2`](models/upscale-dat2/README.md)                              | upscale | DAT-2 dual aggregation transformer 2x and 4x super-resolution      |
 
 ## Repository structure
 

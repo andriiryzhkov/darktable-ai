@@ -1,0 +1,60 @@
+id: upscale-dat2
+name: "upscale dat-2"
+description: "DAT-2 dual aggregation transformer for 2x and 4x super-resolution"
+task: upscale
+version: "0.1"
+backend: onnx
+tiling: true
+type: multi
+dep_group: dat2
+coreml_format: mlprogram
+
+attributes:
+  # split_size=[8, 32] in DAT-2 attention requires inputs divisible by 32.
+  # Tile sizes kept smaller than BSRGAN's because the transformer trace
+  # captures the full attention graph at the deployment dim and OOMs on
+  # consumer-class memory at 512x512. 256/128 trace cleanly and still
+  # emit useful 512x512 output tiles.
+  model_x2:
+    input_sizes: [256]
+  model_x4:
+    input_sizes: [128]
+
+model_card:
+  long_description: "DAT-2 (Dual Aggregation Transformer) image upscaler. Enlarges photos by 2x or 4x with sharp detail and clean edges. Uses a transformer-based architecture for higher quality output, at the cost of longer processing time. Includes both 2x and 4x variants."
+  scope: "image upscaling (2x and 4x super-resolution)"
+  author: "Zheng Chen et al. (Shanghai Jiao Tong University, University of Sydney)"
+  source: "https://github.com/zhengchen1999/DAT"
+  paper: "https://arxiv.org/abs/2308.03364"
+  license: "Apache-2.0"
+  training_data: "DIV2K + Flickr2K (DF2K) – standard SR research datasets"
+  training_data_license: "DIV2K: CC0; Flickr2K: no explicit open-source license"
+  notes: "checkpoints mirrored on Hugging Face from the official Google Drive release; training dataset Flickr2K does not carry an explicit open-source license"
+
+checkpoints:
+  - url: "https://huggingface.co/silveroxides/DAT_upscale_models/resolve/main/DAT-2/DAT_2_x2.pth"
+    path: "temp/upscale-dat2/DAT_2_x2.pth"
+  - url: "https://huggingface.co/silveroxides/DAT_upscale_models/resolve/main/DAT-2/DAT_2_x4.pth"
+    path: "temp/upscale-dat2/DAT_2_x4.pth"
+
+convert:
+  - script: convert.py
+    args:
+      checkpoint: "{temp}/DAT_2_x2.pth"
+      output: "{output}/model_x2.onnx"
+      scale: 2
+      opset: 20
+      height: 256
+      width: 256
+      static: true
+      fp16: true
+  - script: convert.py
+    args:
+      checkpoint: "{temp}/DAT_2_x4.pth"
+      output: "{output}/model_x4.onnx"
+      scale: 4
+      opset: 20
+      height: 128
+      width: 128
+      static: true
+      fp16: true
