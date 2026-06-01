@@ -13,3 +13,6 @@
 [submodule "vendor/rawnind_jddc"]
 	path = vendor/rawnind_jddc
 	url = https://github.com/trougnouf/rawnind_jddc
+[submodule "vendor/man"]
+	path = vendor/man
+	url = https://github.com/icandle/MAN.git

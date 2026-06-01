@@ -1,0 +1,63 @@
+id: upscale-man-base
+name: "upscale man base"
+description: "MAN-Base 2x and 4x super-resolution (multi-scale large kernel attention)"
+task: upscale
+version: "0.2"
+backend: onnx
+tiling: true
+type: multi
+dep_group: man
+coreml_format: mlprogram
+
+repo:
+  submodule: vendor/man
+
+attributes:
+  # MAN is a pure CNN (with depthwise large-kernel attention) — no
+  # divisibility constraint from window attention. Tile sizes match the
+  # other upscale models for predictable cost: x2 from 512, x4 from 256.
+  # x3 weights ship in the upstream zip but the darktable C side currently
+  # dispatches x2/x4 only; revisit when per-scale dispatch is generalised.
+  model_x2:
+    input_sizes: [512]
+  model_x4:
+    input_sizes: [256]
+
+model_card:
+  long_description: "MAN-Base (Multi-scale Attention Network, Base variant). Premium-quality 2x or 4x photo upscaling — preserves fine detail and texture from clean sources. Best when output quality matters most and slower processing is acceptable."
+  scope: "image upscaling (2x and 4x super-resolution)"
+  author: "Yu et al. (icandle)"
+  source: "https://github.com/icandle/MAN"
+  paper: "https://arxiv.org/abs/2209.14145"
+  license: "Apache-2.0"
+  training_data: "DF2K (DIV2K + Flickr2K)"
+  training_data_license: "DIV2K: CC0; Flickr2K: no explicit open-source license"
+  notes: "Training dataset Flickr2K does not carry an explicit open-source license"
+
+checkpoints:
+  - url: "https://drive.google.com/file/d/1bwOLZ-6878zKGUVrwpl-Z6dlyvHoJK9L/view"
+    path: "temp/upscale-man-base/MAN-base.zip"
+
+convert:
+  - script: convert.py
+    args:
+      checkpoint_zip: "{temp}/MAN-base.zip"
+      checkpoint_name: "MANx2_DF2K.pth"
+      output: "{output}/model_x2.onnx"
+      scale: 2
+      opset: 20
+      height: 512
+      width: 512
+      static: true
+      fp16: true
+  - script: convert.py
+    args:
+      checkpoint_zip: "{temp}/MAN-base.zip"
+      checkpoint_name: "MANx4_DF2K.pth"
+      output: "{output}/model_x4.onnx"
+      scale: 4
+      opset: 20
+      height: 256
+      width: 256
+      static: true
+      fp16: true

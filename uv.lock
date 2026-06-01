@@ -285,6 +285,16 @@ eval = [
     { name = "pillow" },
     { name = "scipy" },
 ]
+man = [
+    { name = "numpy" },
+    { name = "onnx" },
+    { name = "onnxconverter-common" },
+    { name = "onnxruntime" },
+    { name = "onnxsim" },
+    { name = "opencv-python-headless" },
+    { name = "torch" },
+    { name = "torchvision" },
+]
 nafnet = [
     { name = "addict" },
     { name = "future" },
@@ -417,6 +427,16 @@ eval = [
     { name = "onnxruntime" },
     { name = "pillow" },
     { name = "scipy" },
+]
+man = [
+    { name = "numpy", specifier = "<2.0" },
+    { name = "onnx", specifier = ">=1.10.0" },
+    { name = "onnxconverter-common" },
+    { name = "onnxruntime" },
+    { name = "onnxsim" },
+    { name = "opencv-python-headless" },
+    { name = "torch", specifier = ">=2.2.0,<2.7" },
+    { name = "torchvision", specifier = ">=0.17.0,<0.22" },
 ]
 nafnet = [
     { name = "addict" },

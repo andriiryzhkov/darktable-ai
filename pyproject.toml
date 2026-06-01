@@ -65,6 +65,10 @@ segnext = [
 bsrgan = [
     {include-group = "core"},
 ]
+man = [
+    {include-group = "core"},
+    "onnxconverter-common",
+]
 sam21 = [
     {include-group = "core"},
     "torch>=2.5.1",
@@ -77,6 +81,7 @@ all-models = [
     {include-group = "rawnind"},
     {include-group = "segnext"},
     {include-group = "bsrgan"},
+    {include-group = "man"},
     {include-group = "sam21"},
 ]
 eval = [
