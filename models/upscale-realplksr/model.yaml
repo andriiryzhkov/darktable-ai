@@ -31,29 +31,7 @@ model_card:
   notes: "trained on DF2K (DIV2K + Flickr2K) per neosr common practice; Flickr2K does not carry an explicit open-source license"
 
 checkpoints:
-  - url: "https://drive.google.com/file/d/1GAdf5VOqYa5ntswT9sYsKKZ2Z7OQp7gO/view"
-    path: "temp/upscale-realplksr/2x_realplksr_mssim_pretrain.pth"
-  - url: "https://drive.google.com/file/d/12ek1vitEporWc5qqaYo6AMy0-RYlRqu8/view"
-    path: "temp/upscale-realplksr/4x_realplksr_mssim_pretrain.pth"
-
-convert:
-  - script: convert.py
-    args:
-      checkpoint: "{temp}/2x_realplksr_mssim_pretrain.pth"
-      output: "{output}/model_x2.onnx"
-      scale: 2
-      opset: 20
-      height: 512
-      width: 512
-      static: true
-      fp16: false
-  - script: convert.py
-    args:
-      checkpoint: "{temp}/4x_realplksr_mssim_pretrain.pth"
-      output: "{output}/model_x4.onnx"
-      scale: 4
-      opset: 20
-      height: 256
-      width: 256
-      static: true
-      fp16: false
+  - url: "https://huggingface.co/darktable-org/upscale-realplksr-onnx/resolve/main/onnx/model_x2.onnx"
+    path: "output/upscale-realplksr/model_x2.onnx"
+  - url: "https://huggingface.co/darktable-org/upscale-realplksr-onnx/resolve/main/onnx/model_x4.onnx"
+    path: "output/upscale-realplksr/model_x4.onnx"
