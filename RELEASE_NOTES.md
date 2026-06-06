@@ -16,13 +16,15 @@ These models are intended for darktable 5.6.0 and later. They power the AI featu
 
 ### Neural restore – used in the neural restore module in the lighttable/darkroom sidebar
 
-- **denoise nind** (`denoise-nind`) – UNet denoiser from the NIND (Natural Image Noise Dataset) project, trained on Wikimedia Commons noisy/clean pairs. Drives the module's *denoise* task on demosaiced RGB; the result is written as a TIFF with the output ICC profile embedded and grouped with the source in the library.
+- **denoise nind** (`denoise-nind`) – UNet denoiser from the NIND (Natural Image Noise Dataset) project, trained on Wikimedia Commons noisy/clean pairs. Drives the module's *denoise* task on demosaiced RGB.
 
 - **denoise nafnet small** (`denoise-nafnet`) – lightweight NAFNet denoiser trained on the SIDD smartphone dataset. Alternative *denoise* task model – tuned for noise patterns typical of small-sensor cameras.
 
-- **raw denoise nind** (`rawdenoise-nind`) – UtNet2 raw-domain denoiser trained on RawNIND. Drives the module's *raw denoise* task; the result is written as a DNG that re-enters the user's existing edit (Bayer or linear Rec.2020). The X-Trans variant falls back to the linear pipeline for now.
+- **raw denoise nind** (`rawdenoise-nind`) – UtNet2 raw-domain denoiser trained on RawNIND. Bundles two variants in one package: a Bayer model that denoises and demosaics in one step (pre-demosaic input), and a linear Rec.2020 model used for non-Bayer sensors (X-Trans, Foveon, 4-colour CFAs). Drives the module's *raw denoise* task.
 
-- **upscale bsrgan** (`upscale-bsrgan`) – BSRGAN blind super-resolution model with 2× and 4× tile sizes packaged together. Drives the module's *upscale* task; result is written as a TIFF embedding the output ICC profile.
+- **upscale realplksr** (`upscale-realplksr`) – RealPLKSR (Partial Large Kernel CNN) at 2× and 4×. Faithful upscaling that preserves detail without smoothing or inventing texture. Best for clean sources like edited RAW exports or high-quality scans. Drives the module's *upscale* task.
+
+- **upscale bsrgan** (`upscale-bsrgan`) – BSRGAN blind super-resolution at 2× and 4×. Combines upscaling with implicit denoising/deblurring, useful when the source already has visible noise or compression artefacts. Drives the module's *upscale* task.
 
 ## Compatibility
 
