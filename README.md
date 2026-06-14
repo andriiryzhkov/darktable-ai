@@ -14,6 +14,8 @@ Currently targets the ONNX backend. The pipeline is designed to support addition
 | [`mask-object-sam21-small`](models/mask-object-sam21-small/README.md)         | mask    | SAM 2.1 Hiera Small for interactive masking     |
 | [`mask-object-sam21-tiny`](models/mask-object-sam21-tiny/README.md)           | mask    | SAM 2.1 Hiera Tiny for interactive masking      |
 | [`mask-object-segnext-b2hq`](models/mask-object-segnext-b2hq/README.md)      | mask    | SegNext ViT-B SAx2 HQ for semantic masking      |
+| [`mask-subject-birefnet`](models/mask-subject-birefnet/README.md)            | mask    | BiRefNet (Swin Large) for automatic subject / foreground segmentation |
+| [`mask-subject-birefnet-lite`](models/mask-subject-birefnet-lite/README.md)  | mask    | BiRefNet Lite for automatic subject / foreground segmentation |
 | [`rawdenoise-nind`](models/rawdenoise-nind/README.md)                         | rawdenoise | UtNet2 raw denoiser trained on RawNIND (Bayer + linear Rec.2020 variants) |
 | [`upscale-bsrgan`](models/upscale-bsrgan/README.md)                          | upscale | BSRGAN 2x and 4x blind super-resolution        |
 | [`upscale-realplksr`](models/upscale-realplksr/README.md)                    | upscale | RealPLKSR 2x and 4x super-resolution (real-world photos)|
