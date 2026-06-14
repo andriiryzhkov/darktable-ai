@@ -1,0 +1,42 @@
+id: mask-subject-birefnet
+name: "mask subject birefnet"
+description: "BiRefNet (Swin Large) for automatic subject / foreground segmentation"
+task: subject
+version: "0.1"
+arch: birefnet
+backend: onnx
+type: single
+dep_group: birefnet
+
+attributes:
+  # fixed 1024x1024 input; the source image is stretched (non-uniform
+  # resize) onto the square, then mapped back to the original aspect
+  # after inference.
+  input_sizes: [1024]
+  resize_mode: stretch
+  # input is RGB normalized with ImageNet mean/std, expressed in the
+  # 0-255 input space to match the convention used by other models
+  # (equivalent to (img/255 - [0.485, 0.456, 0.406]) / [0.229, 0.224, 0.225])
+  color_space: rgb
+  norm_mean: [123.675, 116.28, 103.53]
+  norm_std:  [58.395, 57.12, 57.375]
+  # raw output is logits; consumer applies sigmoid to get [0, 1] mask
+  output_kind: salient_mask
+  output_activation: sigmoid
+
+model_card:
+  long_description: "BiRefNet with Swin Large backbone for automatic subject extraction. Same single-pass workflow as the Lite variant – no click prompts – but ~4× the parameters give a meaningful quality bump on fine boundaries (hair, fur, foliage). Pick this when edge detail matters more than runtime"
+  scope: "automatic subject / foreground segmentation"
+  author: "Peng Zheng et al."
+  source: "https://github.com/ZhengPeng7/BiRefNet"
+  paper: "https://arxiv.org/abs/2401.03407"
+  license: "MIT"
+  training_data: "DIS5K – 5470 high-resolution images collected from Flickr and manually annotated for dichotomous image segmentation"
+  training_data_license: "DIS5K dataset under Apache 2.0; the Flickr-sourced images do not carry documented per-image creator consent"
+  notes: "Swin Large (swin_v1_l) backbone, ~200M parameters – ~4× the Lite variant. Best on scenes with one clear subject; slower than Lite, particularly on CPU"
+
+checkpoints:
+  # FP16 variant by default (~490 MiB). For FP32 (~973 MiB) change the URL
+  # to `onnx/model.onnx` from the same HF path.
+  - url: "https://huggingface.co/onnx-community/BiRefNet-ONNX/resolve/main/onnx/model_fp16.onnx"
+    path: "output/mask-subject-birefnet/model.onnx"
