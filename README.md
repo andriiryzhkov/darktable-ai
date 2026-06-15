@@ -181,6 +181,36 @@ convert:
 
 Available template variables: `{root}`, `{model_dir}`, `{temp}`, `{output}`, `{repo}`.
 
+### attributes (preprocessing schema)
+
+The `attributes` block in `model.yaml` is serialised verbatim into
+`config.json` next to the ONNX file. Consumers (the C side in darktable, the
+demo scripts, and the Python evaluation harness) read these fields to drive
+preprocessing instead of hardcoding per-model logic.
+
+The widely-supported keys today are:
+
+| Key                 | Type       | Meaning                                                                                       |
+| ------------------- | ---------- | --------------------------------------------------------------------------------------------- |
+| `input_sizes`       | int list   | Reference resolution(s) the model was trained / tuned for                                     |
+| `resize_mode`       | string     | `square` (force to `input_sizes[0]²`), `longest_side`, `shortest_side`                        |
+| `size_multiple`     | int        | Resized dims are rounded up to a multiple of this (commonly 32 for transformer backbones)     |
+| `color_space`       | string     | `rgb` or `bgr`                                                                                |
+| `norm_mean`         | float list | Per-channel mean used in `(pixel - mean) / std` (pixels in `[0, 255]` for `rgb`)              |
+| `norm_std`          | float list | Per-channel std used in `(pixel - mean) / std`                                                |
+| `output_kind`       | string     | `binary_mask`, `alpha_matte`, `logits`, `embedding`, …                                        |
+| `output_activation` | string     | `none` or `sigmoid` – applied client-side after inference                                     |
+
+Models with task-specific knobs may add extra keys (see `denoise-nafnet`'s
+`shadow_boost`, `rawdenoise-nind`'s `input_kind` / `bayer_orientation` etc.) –
+the schema is open. Multi-variant models (`type: multi`) nest the per-variant
+keys under a `model_<variant>:` block as in `rawdenoise-nind`.
+
+The demo scripts should load these from `config.json` next to the ONNX file
+and fall back to upstream defaults if it is missing, so the script still
+works on a raw HuggingFace download outside the pipeline. See
+`models/mask-portrait-modnet/demo.py` for a reference implementation.
+
 ### demo.py
 
 The demo script must expose a `demo()` function. The first arguments depend on the model type:
