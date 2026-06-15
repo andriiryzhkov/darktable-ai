@@ -1,0 +1,41 @@
+id: mask-person-modnet
+name: "mask person modnet"
+description: "MODNet for trimap-free portrait matting (continuous alpha matte for people)"
+task: person
+version: "0.1"
+arch: modnet
+backend: onnx
+type: single
+dep_group: modnet
+
+attributes:
+  # MODNet uses a dynamic input shape; 512 is the reference size that the
+  # upstream inference scripts target. The longer side is rescaled to this
+  # value and both dimensions are rounded up to a multiple of 32
+  input_sizes: [512]
+  resize_mode: longest_side
+  size_multiple: 32
+  # input is RGB normalized to [-1, 1] via (rgb - mean) / std
+  color_space: rgb
+  norm_mean: [127.5, 127.5, 127.5]
+  norm_std:  [127.5, 127.5, 127.5]
+  # raw output is already a [0, 1] alpha matte; no sigmoid or threshold needed
+  output_kind: alpha_matte
+  output_activation: none
+
+model_card:
+  long_description: "MODNet (MobileNetV2 backbone) for real-time trimap-free portrait matting. Produces a continuous 0–1 alpha matte – not a binary mask – so hair, fly-aways and soft edges come out as transparency rather than a hard cut. Specialised for people; reach for it on portraits where BiRefNet or SAM produce too-hard edges"
+  scope: "automatic portrait / person matting (alpha matte output)"
+  author: "Zhanghan Ke et al. (City University of Hong Kong / SenseTime)"
+  source: "https://github.com/ZHKKKe/MODNet"
+  paper: "https://arxiv.org/abs/2011.11961"
+  license: "Apache-2.0"
+  training_data: "PPM-100 (Photographic Portrait Matting) released with the paper, plus the supervised pre-training portion uses portions of Adobe Composition-1k and the AISegment portrait dataset"
+  training_data_license: "PPM-100: Apache-2.0 alongside the codebase. Adobe Composition-1k: research-only, not redistributable. AISegment: provenance and per-subject consent are not fully documented"
+  notes: "Output is an alpha matte, not a binary mask – consumers should treat the value as opacity in [0, 1]. Best on single-person portraits; tends to struggle with groups, partial occlusion, and non-human subjects. Input is dynamic; the upstream pipeline targets a 512 short-side"
+
+checkpoints:
+  # FP16 variant by default (~13 MiB). For FP32 (~26 MiB) change the URL
+  # to `onnx/model.onnx` from the same HF path.
+  - url: "https://huggingface.co/Xenova/modnet/resolve/main/onnx/model_fp16.onnx"
+    path: "output/mask-person-modnet/model.onnx"

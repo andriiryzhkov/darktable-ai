@@ -80,6 +80,9 @@ sam21 = [
 birefnet = [
     {include-group = "core"},
 ]
+modnet = [
+    {include-group = "core"},
+]
 all-models = [
     {include-group = "nafnet"},
     {include-group = "nind"},
@@ -89,6 +92,7 @@ all-models = [
     {include-group = "realplksr"},
     {include-group = "sam21"},
     {include-group = "birefnet"},
+    {include-group = "modnet"},
 ]
 eval = [
     "numpy<2.0",
