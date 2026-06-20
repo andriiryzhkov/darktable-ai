@@ -3,6 +3,12 @@ name: Check Models PR
 on:
   pull_request:
     branches: [master, 'models-*.x']
+    paths-ignore:
+      - "tools/**"
+      - "**.md"
+      - "releases-index.json"
+      - ".github/workflows/nightly.yml"
+      - ".github/workflows/release.yml"
   workflow_dispatch:
 
 # one check per PR; new pushes cancel the previous run
