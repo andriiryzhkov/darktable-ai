@@ -14,11 +14,32 @@
 # Used by CI workflows for the nightly version label and by maintainer
 # scripts that need to print "what version am I on".
 
-VERSION="$(git describe --tags --dirty --match release-* 2>/dev/null)"
+# Use semver-sorted tag list; `git describe` breaks ties between tags
+# on the same commit by tagger date, which picks the wrong tag when
+# 5.7.0 was anchored before 5.6.0 was released.
 
-if [ $? -eq 0 ] ;
+LATEST_TAG="$(git tag --sort=-version:refname --merged HEAD --list 'release-*' 2>/dev/null | head -n 1)"
+
+if [ -n "$LATEST_TAG" ] ;
 then
-  echo "$VERSION" | sed 's,^release-,,;s,-,+,;s,-,~,;'
+  VERSION="${LATEST_TAG#release-}"
+  COMMITS_SINCE="$(git rev-list "$LATEST_TAG"..HEAD --count 2>/dev/null)"
+  COMMITS_SINCE="${COMMITS_SINCE:-0}"   # treat git failure as "on the tag"
+  SHORT_HASH="$(git rev-parse --short HEAD 2>/dev/null)"
+  SHORT_HASH="${SHORT_HASH:-unknown}"
+
+  DIRTY=""
+  if ! git diff --quiet 2>/dev/null || ! git diff --cached --quiet 2>/dev/null ; then
+    DIRTY="~dirty"
+  fi
+
+  if [ "$COMMITS_SINCE" = "0" ] && [ -z "$DIRTY" ] ; then
+    echo "$VERSION"
+  elif [ "$COMMITS_SINCE" = "0" ] ; then
+    echo "${VERSION}${DIRTY}"
+  else
+    echo "${VERSION}+${COMMITS_SINCE}~g${SHORT_HASH}${DIRTY}"
+  fi
   exit 0
 fi
 
