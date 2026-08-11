@@ -215,11 +215,15 @@ def list_models(ctx, as_json):
 def versions(ctx, artifacts_dir):
     """Generate versions.json from model.yaml files.
 
-    When --artifacts-dir is provided, the output additionally carries a
-    top-level "sha256" object mapping model id to "sha256:HEX". The
-    consumer (darktable) reads this and skips a per-asset GitHub API call
-    that would otherwise cost one rate-limited request per downloaded
-    model.
+    darktable reads this next to the .dtmodel assets to detect updates, to
+    verify a download without a rate-limited API call per asset, and to
+    list what a release offers — including models released after a given
+    darktable build, which its bundled catalogue cannot know about. That
+    last use is why the entries carry display metadata and not just a
+    version.
+
+    `sha256` and `size` need the built archive, so they appear only with
+    --artifacts-dir.
     """
     import hashlib
 
@@ -227,7 +231,22 @@ def versions(ctx, artifacts_dir):
     models = [m for m in discover_models(root) if not m.skip]
     models.sort(key=lambda m: m.id)
 
-    entries: dict[str, dict] = {m.id: {"version": m.version} for m in models}
+    entries: dict[str, dict] = {}
+    for m in models:
+        entry: dict = {"version": m.version}
+        # Enough for a user to choose a model before downloading it, and no
+        # more: the full model card stays in the package's config.json,
+        # since this file is fetched on every update check.
+        if m.name:
+            entry["name"] = m.name
+        if m.description:
+            entry["description"] = m.description
+        if m.task:
+            entry["task"] = m.task
+        license_ = m.model_card.get("license")
+        if license_:
+            entry["license"] = license_
+        entries[m.id] = entry
 
     if artifacts_dir is not None:
         for m in models:
@@ -244,8 +263,13 @@ def versions(ctx, artifacts_dir):
                 for chunk in iter(lambda: fh.read(1 << 20), b""):
                     h.update(chunk)
             entries[m.id]["sha256"] = f"sha256:{h.hexdigest()}"
+            # download size, so the installer can say what it is about to
+            # fetch rather than starting a 200 MB transfer unannounced
+            entries[m.id]["size"] = path.stat().st_size
 
-    data = {"models": entries}
+    # schema is frozen at 1; consumers should warn on anything else rather
+    # than guess, the way darktable already treats releases-index.json
+    data = {"schema": 1, "models": entries}
 
     output_path = root / "output" / "versions.json"
     output_path.parent.mkdir(parents=True, exist_ok=True)
