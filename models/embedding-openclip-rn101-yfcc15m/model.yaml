@@ -1,7 +1,7 @@
-id: embed-openclip-rn101-yfcc15m
-name: "embed openclip rn101 yfcc15m"
+id: embedding-openclip-rn101-yfcc15m
+name: "embedding openclip rn101 yfcc15m"
 description: "OpenCLIP RN101 for tag suggestions and image-similarity search; trained on Flickr Creative Commons photos (YFCC15M)"
-task: embed
+task: embedding
 version: "0.1"
 arch: openclip-rn101
 type: single
