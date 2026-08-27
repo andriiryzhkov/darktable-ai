@@ -3,6 +3,7 @@
   "compatible_releases": {
     "5.5.0": "nightly-5.5.0",
     "5.6.0": "release-5.6.0",
+    "5.6.1": "release-5.6.0",
     "5.7.0": "nightly-5.7.0"
   }
 }
