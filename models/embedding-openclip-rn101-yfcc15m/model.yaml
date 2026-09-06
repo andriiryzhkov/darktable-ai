@@ -1,6 +1,6 @@
 id: embedding-openclip-rn101-yfcc15m
 name: "embedding openclip rn101 yfcc15m"
-description: "OpenCLIP RN101 for tag suggestions and image-similarity search; trained on Flickr Creative Commons photos (YFCC15M)"
+description: "OpenCLIP RN101 image encoder for auto-tagging and image-similarity search; trained on Flickr Creative Commons photos (YFCC15M)"
 task: embedding
 version: "0.1"
 arch: openclip-rn101
@@ -36,6 +36,5 @@ convert:
   - script: convert.py
     args:
       output: "{output}/model.onnx"
-      tags_output: "{output}/tags.json"
       opset: 20
       fp16: true
